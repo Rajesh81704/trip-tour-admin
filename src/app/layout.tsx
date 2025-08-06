@@ -4,6 +4,8 @@ import "./globals.css";
 import AuthWrapper from "@/components/wrapper/auth";
 import ReduxStoreProvider from "@/store/store";
 import Sidebar from "@/components/layout/sidebar";
+import { Toaster } from "@/components/ui/sonner";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -34,6 +36,7 @@ export default function RootLayout({
             <Sidebar>{children}</Sidebar>
           </AuthWrapper>
         </ReduxStoreProvider>
+        <Toaster />
       </body>
     </html>
   );

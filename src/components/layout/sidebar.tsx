@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, User, Settings, LogOut, LayoutDashboard } from "lucide-react";
+import {
+  Home,
+  User,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+  Package,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDispatch } from "react-redux";
 import { logout } from "@/store/slice";
@@ -19,6 +26,11 @@ const sidebarLinks = [
     name: "Users",
     href: "/users",
     icon: User,
+  },
+  {
+    name: "Packages",
+    href: "/packages",
+    icon: Package,
   },
   {
     name: "Settings",
@@ -39,8 +51,8 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <>
-      <aside className="h-screen w-64 bg-background border-r flex flex-col justify-between">
+    <div className="flex h-screen">
+      <aside className="w-64 bg-background border-r flex flex-col justify-between">
         <div>
           <div className="p-6 font-bold text-xl flex items-center gap-2">
             <Home className="w-6 h-6" />
@@ -78,7 +90,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
       </aside>
-      {children}
-    </>
+      <main className="flex-1 overflow-auto">{children}</main>
+    </div>
   );
 }

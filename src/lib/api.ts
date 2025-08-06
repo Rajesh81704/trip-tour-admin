@@ -32,8 +32,8 @@ class ApiClient {
             throw error;
         }
     }
-
-    async post<T>(url: string, data: Record<string, string>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async post<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const response: AxiosResponse<T> = await this.client.post(url, data, {
                 headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
@@ -45,7 +45,8 @@ class ApiClient {
         }
     }
 
-    async put<T>(url: string, data: Record<string, string>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async put<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const response: AxiosResponse<T> = await this.client.put(url, data, {
                 headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
@@ -67,7 +68,8 @@ class ApiClient {
         }
     }
 
-    async patch<T>(url: string, data: Record<string, string>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async patch<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const response: AxiosResponse<T> = await this.client.patch(url, data, {
                 headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
