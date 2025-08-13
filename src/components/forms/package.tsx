@@ -614,6 +614,7 @@ export default function PackageForm({
                       placeholder="Day number"
                       type="number"
                       value={item.day}
+                      readOnly
                       onChange={(e) => {
                         const newValue = [...field.value];
                         newValue[index].day = parseInt(e.target.value);
