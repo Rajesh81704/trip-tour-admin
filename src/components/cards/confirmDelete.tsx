@@ -12,10 +12,14 @@ import {
 import { Trash } from "lucide-react";
 
 interface ConfirmDeleteProps {
+  title: string;
   onConfirm: () => Promise<void>;
 }
 
-export default function ConfirmDelete({ onConfirm }: ConfirmDeleteProps) {
+export default function ConfirmDelete({
+  onConfirm,
+  title,
+}: ConfirmDeleteProps) {
   const [open, setOpen] = useState(false);
 
   const handleCancel = () => {
@@ -31,9 +35,9 @@ export default function ConfirmDelete({ onConfirm }: ConfirmDeleteProps) {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete Package?</DialogTitle>
+          <DialogTitle>Delete {title}?</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete this package? This action cannot be
+            Are you sure you want to delete this {title}? This action cannot be
             undone.
           </DialogDescription>
         </DialogHeader>

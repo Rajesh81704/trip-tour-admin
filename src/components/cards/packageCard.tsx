@@ -113,7 +113,7 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
         >
           Edit <Pencil className="w-4 h-4" />
         </Button>
-        <ConfirmDelete onConfirm={handleDelete} />
+        <ConfirmDelete onConfirm={handleDelete} title="Package" />
       </CardFooter>
     </Card>
   );
