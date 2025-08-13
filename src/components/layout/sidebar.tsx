@@ -1,25 +1,24 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import api from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { logout } from "@/store/slice";
 import {
   Home,
-  User,
-  Settings,
-  LogOut,
   LayoutDashboard,
-  Package,
-  Send,
+  LogOut,
   Mail,
   Menu,
+  Package,
+  Send,
+  Settings,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useDispatch } from "react-redux";
-import { logout } from "@/store/slice";
-import api from "@/lib/api";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 
 const sidebarLinks = [
   {
@@ -27,11 +26,11 @@ const sidebarLinks = [
     href: "/",
     icon: LayoutDashboard,
   },
-  {
-    name: "Users",
-    href: "/users",
-    icon: User,
-  },
+  // {
+  //   name: "Users",
+  //   href: "/users",
+  //   icon: User,
+  // },
   {
     name: "Packages",
     href: "/packages",
