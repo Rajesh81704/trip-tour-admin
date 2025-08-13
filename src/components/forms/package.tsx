@@ -18,6 +18,8 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const packageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -71,6 +73,8 @@ export default function PackageForm({
   const [previews, setPreviews] = useState<string[]>(
     initialData?.images.map((img) => img.url) || []
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof packageSchema>>({
     resolver: zodResolver(packageSchema),
@@ -111,28 +115,46 @@ export default function PackageForm({
   };
 
   const handleSubmit = async (values: z.infer<typeof packageSchema>) => {
-    const formData = new FormData();
+    try {
+      setIsSubmitting(true);
+      const formData = new FormData();
 
-    // Append all form fields
-    Object.entries(values).forEach(([key, value]) => {
-      if (typeof value === "object") {
-        formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, value.toString());
+      // Append all form fields
+      Object.entries(values).forEach(([key, value]) => {
+        if (typeof value === "object") {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Append images
+      images.forEach((image) => {
+        formData.append("images", image);
+      });
+
+      await onSubmit(formData);
+
+      if (!initialData) {
+        toast.success("Package created successfully");
+        router.push("/packages");
       }
-    });
-
-    // Append images
-    images.forEach((image) => {
-      formData.append("images", image);
-    });
-
-    await onSubmit(formData);
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit, () => {
+          toast.error("Please fill in all required fields correctly");
+        })}
+        className="space-y-8"
+      >
         <FormField
           control={form.control}
           name="title"
@@ -683,8 +705,16 @@ export default function PackageForm({
           ))}
         </div>
 
-        <Button type="submit" className="w-full md:w-auto">
-          {initialData ? "Update Package" : "Create Package"}
+        <Button
+          type="submit"
+          className="w-full md:w-auto"
+          disabled={isSubmitting}
+        >
+          {isSubmitting
+            ? "Creating..."
+            : initialData
+            ? "Update Package"
+            : "Create Package"}
         </Button>
       </form>
     </Form>
