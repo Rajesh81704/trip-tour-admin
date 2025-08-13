@@ -1,10 +1,12 @@
+import { Package } from "./package";
+import { User } from "./user";
+
 export interface Review {
     _id: string;
     rating: number;
-    review: string;
-    user: string;
-    applaud: number;
-    package: string;
-    createdAt: string;
-    updatedAt: string;
+    comment: string;
+    user: User;
+    package: Package;
+    createdAt: Date;
+    updatedAt: Date;
 }   

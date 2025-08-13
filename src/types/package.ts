@@ -15,7 +15,6 @@ export interface PackageItineraryItem {
     day: number;
     title: string;
     description: string;
-    _id: string;
 }
 
 export interface Package {
@@ -28,7 +27,6 @@ export interface Package {
     images: {
         url: string;
         public_id: string;
-        _id: string;
     }[];
     features: string[];
     discount: number;
@@ -37,7 +35,6 @@ export interface Package {
     itinerary: PackageItineraryItem[];
     inclusions: string[];
     exclusions: string[];
-    createdAt: string;
-    updatedAt: string;
-    __v: number;
+    createdAt: Date;
+    updatedAt: Date;
 }

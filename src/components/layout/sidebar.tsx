@@ -10,6 +10,7 @@ import {
   LogOut,
   LayoutDashboard,
   Package,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDispatch } from "react-redux";
@@ -31,6 +32,11 @@ const sidebarLinks = [
     name: "Packages",
     href: "/packages",
     icon: Package,
+  },
+  {
+    name: "Reviews",
+    href: "/reviews",
+    icon: Star,
   },
   {
     name: "Settings",
