@@ -20,35 +20,33 @@ export default function Inquiry() {
     };
     fetchInquiries();
   }, []);
-
   return (
-    <div className="p-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3 bg-gray-900 min-h-screen">
+    <div className="p-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3 text-center">
       {inquiries.map((inq) => (
         <Card
           key={inq._id}
-          className="rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-800 to-gray-900 
-          shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300"
+          className="shadow-lg hover:shadow-xl rounded-2xl border border-gray-200 hover:scale-105  transition-all duration-300"
         >
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-100">
+            <CardTitle className="text-lg font-semibold text-white">
               {inq.name}
             </CardTitle>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-500">
               {new Date(inq.createdAt).toLocaleDateString()}
             </p>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
-            <div className="flex items-center gap-2 text-gray-300">
-              <Phone size={16} className="text-blue-400" /> {inq.mobileNumber}
+            <div className="flex items-center gap-2 text-gray-700">
+              <Phone size={16} className="text-blue-500" /> {inq.mobileNumber}
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <Mail size={16} className="text-red-400" /> {inq.email}
+            <div className="flex items-center gap-2 text-gray-700">
+              <Mail size={16} className="text-red-500" /> {inq.email}
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <MapPin size={16} className="text-green-400" /> {inq.destination}
+            <div className="flex items-center gap-2 text-gray-700">
+              <MapPin size={16} className="text-green-500" /> {inq.destination}
             </div>
-            <div className="flex items-start gap-2 text-gray-300">
-              <MessageSquare size={16} className="text-purple-400 mt-0.5" />{" "}
+            <div className="flex items-start gap-2 text-gray-700">
+              <MessageSquare size={16} className="text-purple-500 mt-0.5" />{" "}
               <span>{inq.message}</span>
             </div>
           </CardContent>
