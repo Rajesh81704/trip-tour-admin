@@ -12,11 +12,14 @@ import {
   Package,
   Send,
   Mail,
+  Menu,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDispatch } from "react-redux";
 import { logout } from "@/store/slice";
 import api from "@/lib/api";
+import { useState } from "react";
 
 const sidebarLinks = [
   {
@@ -60,6 +63,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const dispatch = useDispatch();
   const router = useRouter();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await api.post("/auth/admin/logout", {});
@@ -67,9 +71,32 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
     router.push("/auth/login");
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
-    <div className="flex h-screen">
-      <aside className="w-64 bg-background border-r flex flex-col justify-between">
+    <div className="flex h-screen relative">
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        className="lg:hidden fixed top-4 left-4 z-50 bg-white"
+        onClick={toggleSidebar}
+      >
+        {isSidebarOpen ? (
+          <X className="w-6 h-6 text-black" />
+        ) : (
+          <Menu className="w-6 h-6 text-black" />
+        )}
+      </Button>
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed lg:static w-64 bg-background border-r flex flex-col justify-between h-full transition-transform duration-300 z-40",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
+      >
         <div>
           <div className="p-6 font-bold text-xl flex items-center gap-2">
             <Home className="w-6 h-6" />
@@ -82,6 +109,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
                 <Link
                   key={link.name}
                   href={link.href}
+                  onClick={() => setIsSidebarOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-6 mx-2 py-3 text-sm font-medium rounded-md transition-colors",
                     isActive
@@ -107,7 +135,17 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
       </aside>
-      <main className="flex-1 overflow-auto">{children}</main>
+
+      {/* Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 lg:hidden z-30"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
     </div>
   );
 }
