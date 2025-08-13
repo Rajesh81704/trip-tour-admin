@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Package,
   Send,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDispatch } from "react-redux";
@@ -37,6 +38,11 @@ const sidebarLinks = [
     name: "B2B Requests",
     href: "/b2b",
     icon: Send,
+  },
+  {
+    name: "Contacts",
+    href: "/contacts",
+    icon: Mail,
   },
   {
     name: "Inquiries",
