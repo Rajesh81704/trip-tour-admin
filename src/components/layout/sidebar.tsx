@@ -34,6 +34,11 @@ const sidebarLinks = [
     icon: Package,
   },
   {
+    name: "B2B Requests",
+    href: "/b2b",
+    icon: Send,
+  },
+  {
     name: "Inquiries",
     href: "/inquires",
     icon: Send,

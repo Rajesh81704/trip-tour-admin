@@ -2,6 +2,7 @@
 
 import ConfirmDelete from "@/components/cards/confirmDelete";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import api from "@/lib/api";
 import {
   Building2,
   Calendar,
@@ -28,33 +29,24 @@ interface B2BRequest {
 
 export default function B2BPage() {
   const [b2bRequests, setB2BRequests] = useState<B2BRequest[]>([]);
-  const backendUrl = process.env.NEXT_PUBLIC_DEV_BACKEND_URL;
 
   useEffect(() => {
     const fetchB2BRequests = async () => {
       try {
-        const response = await fetch(`${backendUrl}/b2b-requests`);
-        const data = await response.json();
-        if (data.success) {
-          setB2BRequests(data.data);
-        }
+        const response = await api.get<{ data: B2BRequest[] }>("/b2b-requests");
+        setB2BRequests(response.data.data);
       } catch (error) {
         console.error("Error fetching B2B requests:", error);
       }
     };
 
     fetchB2BRequests();
-  }, [backendUrl]);
+  }, []);
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`${backendUrl}/b2b-requests/${id}`, {
-        method: "DELETE",
-      });
-      const data = await response.json();
-      if (data.success) {
-        setB2BRequests(b2bRequests.filter((request) => request._id !== id));
-      }
+      await api.delete(`/b2b-requests/${id}`);
+      setB2BRequests(b2bRequests.filter((request) => request._id !== id));
     } catch (error) {
       console.error("Error deleting B2B request:", error);
     }
