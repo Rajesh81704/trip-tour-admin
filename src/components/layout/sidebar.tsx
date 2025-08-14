@@ -11,6 +11,7 @@ import {
   Mail,
   Menu,
   Package,
+  Plus,
   Send,
   Settings,
   X,
@@ -26,11 +27,11 @@ const sidebarLinks = [
     href: "/",
     icon: LayoutDashboard,
   },
-  // {
-  //   name: "Users",
-  //   href: "/users",
-  //   icon: User,
-  // },
+  {
+    name: "Create Package",
+    href: "/packages/new",
+    icon: Plus,
+  },
   {
     name: "Packages",
     href: "/packages",
