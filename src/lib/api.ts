@@ -6,9 +6,12 @@ class ApiClient {
     private static instance: ApiClient;
 
     private constructor() {
-        const url = process.env.NODE_ENV === 'production'
-            ? process.env.NEXT_PUBLIC_PROD_BACKEND_URL
-            : process.env.NEXT_PUBLIC_DEV_BACKEND_URL;
+        // Use local proxy routes for all environments
+        const url = '/api';
+
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[ApiClient] Initializing with proxy API URL: ${url}`);
+        }
 
         this.client = axios.create({
             baseURL: url,
@@ -25,7 +28,11 @@ class ApiClient {
 
     async get<T>(url: string, params?: Record<string, string>): Promise<{ data: T; status: number }> {
         try {
-            const response: AxiosResponse<T> = await this.client.get(url, { params });
+            const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
+            if (process.env.NODE_ENV === 'development') {
+                console.log('[ApiClient] GET request to:', proxyUrl);
+            }
+            const response: AxiosResponse<T> = await this.client.get(proxyUrl, { params });
             return { data: response.data, status: response.status };
         } catch (error) {
             this.handleError(error);
@@ -35,7 +42,11 @@ class ApiClient {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async post<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
-            const response: AxiosResponse<T> = await this.client.post(url, data, {
+            const proxyUrl = url.startsWith('/proxy/') || url.startsWith('/auth/') ? url : `/proxy${url}`;
+            if (process.env.NODE_ENV === 'development') {
+                console.log('[ApiClient] POST request to:', proxyUrl);
+            }
+            const response: AxiosResponse<T> = await this.client.post(proxyUrl, data, {
                 headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
             });
             return { data: response.data, status: response.status };
@@ -48,7 +59,8 @@ class ApiClient {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async put<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
-            const response: AxiosResponse<T> = await this.client.put(url, data, {
+            const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
+            const response: AxiosResponse<T> = await this.client.put(proxyUrl, data, {
                 headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
             });
             return { data: response.data, status: response.status };
@@ -60,7 +72,8 @@ class ApiClient {
 
     async delete<T>(url: string): Promise<{ data: T; status: number }> {
         try {
-            const response: AxiosResponse<T> = await this.client.delete(url);
+            const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
+            const response: AxiosResponse<T> = await this.client.delete(proxyUrl);
             return { data: response.data, status: response.status };
         } catch (error) {
             this.handleError(error);
@@ -71,7 +84,8 @@ class ApiClient {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async patch<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
-            const response: AxiosResponse<T> = await this.client.patch(url, data, {
+            const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
+            const response: AxiosResponse<T> = await this.client.patch(proxyUrl, data, {
                 headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
             });
             return { data: response.data, status: response.status };
