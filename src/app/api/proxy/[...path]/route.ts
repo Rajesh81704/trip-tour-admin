@@ -16,12 +16,14 @@ export async function GET(
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const targetUrl = `${backendUrl}/${path}${searchParams ? `?${searchParams}` : ''}`;
 
+    const cookie = request.headers.get('cookie') || '';
+
     const response = await fetch(targetUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...(cookie && { cookie }),
       },
-      credentials: 'include',
     });
 
     const data = await response.json();
@@ -29,7 +31,7 @@ export async function GET(
   } catch (error) {
     console.error('[PROXY] GET error:', error);
     return NextResponse.json(
-      { success: false, message: 'Proxy error' },
+      { success: false, message: 'Proxy error', error: String(error) },
       { status: 500 }
     );
   }
@@ -41,19 +43,20 @@ export async function POST(
 ) {
   try {
     const path = (await params).path.join('/');
-    const contentType = request.headers.get('content-type');
+    const contentType = request.headers.get('content-type') || '';
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const targetUrl = `${backendUrl}/${path}`;
+    const cookie = request.headers.get('cookie') || '';
 
-    let body: FormData | string;
+    let body: FormData | string | Buffer;
     const fetchHeaders: Record<string, string> = {};
+    if (cookie) fetchHeaders['cookie'] = cookie;
 
-    if (contentType?.includes('multipart/form-data')) {
-      // Handle FormData
+    if (contentType.includes('multipart/form-data')) {
+      // Stream FormData directly to backend without re-parsing
       body = await request.formData();
-      // Don't set Content-Type; fetch will set it with boundary
+      // Do NOT set Content-Type — fetch sets it with the boundary automatically
     } else {
-      // Handle JSON
       body = JSON.stringify(await request.json());
       fetchHeaders['Content-Type'] = 'application/json';
     }
@@ -62,7 +65,6 @@ export async function POST(
       method: 'POST',
       headers: fetchHeaders,
       body,
-      credentials: 'include',
     });
 
     const data = await response.json();
@@ -70,7 +72,7 @@ export async function POST(
   } catch (error) {
     console.error('[PROXY] POST error:', error);
     return NextResponse.json(
-      { success: false, message: 'Proxy error' },
+      { success: false, message: 'Proxy error', error: String(error) },
       { status: 500 }
     );
   }
@@ -82,19 +84,18 @@ export async function PUT(
 ) {
   try {
     const path = (await params).path.join('/');
-    const contentType = request.headers.get('content-type');
+    const contentType = request.headers.get('content-type') || '';
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const targetUrl = `${backendUrl}/${path}`;
+    const cookie = request.headers.get('cookie') || '';
 
     let body: FormData | string;
     const fetchHeaders: Record<string, string> = {};
+    if (cookie) fetchHeaders['cookie'] = cookie;
 
-    if (contentType?.includes('multipart/form-data')) {
-      // Handle FormData
+    if (contentType.includes('multipart/form-data')) {
       body = await request.formData();
-      // Don't set Content-Type; fetch will set it with boundary
     } else {
-      // Handle JSON
       body = JSON.stringify(await request.json());
       fetchHeaders['Content-Type'] = 'application/json';
     }
@@ -103,7 +104,6 @@ export async function PUT(
       method: 'PUT',
       headers: fetchHeaders,
       body,
-      credentials: 'include',
     });
 
     const data = await response.json();
@@ -111,7 +111,7 @@ export async function PUT(
   } catch (error) {
     console.error('[PROXY] PUT error:', error);
     return NextResponse.json(
-      { success: false, message: 'Proxy error' },
+      { success: false, message: 'Proxy error', error: String(error) },
       { status: 500 }
     );
   }
@@ -125,13 +125,14 @@ export async function DELETE(
     const path = (await params).path.join('/');
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const targetUrl = `${backendUrl}/${path}`;
+    const cookie = request.headers.get('cookie') || '';
 
     const response = await fetch(targetUrl, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        ...(cookie && { cookie }),
       },
-      credentials: 'include',
     });
 
     const data = await response.json();
@@ -139,7 +140,7 @@ export async function DELETE(
   } catch (error) {
     console.error('[PROXY] DELETE error:', error);
     return NextResponse.json(
-      { success: false, message: 'Proxy error' },
+      { success: false, message: 'Proxy error', error: String(error) },
       { status: 500 }
     );
   }
@@ -151,19 +152,18 @@ export async function PATCH(
 ) {
   try {
     const path = (await params).path.join('/');
-    const contentType = request.headers.get('content-type');
+    const contentType = request.headers.get('content-type') || '';
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const targetUrl = `${backendUrl}/${path}`;
+    const cookie = request.headers.get('cookie') || '';
 
     let body: FormData | string;
     const fetchHeaders: Record<string, string> = {};
+    if (cookie) fetchHeaders['cookie'] = cookie;
 
-    if (contentType?.includes('multipart/form-data')) {
-      // Handle FormData
+    if (contentType.includes('multipart/form-data')) {
       body = await request.formData();
-      // Don't set Content-Type; fetch will set it with boundary
     } else {
-      // Handle JSON
       body = JSON.stringify(await request.json());
       fetchHeaders['Content-Type'] = 'application/json';
     }
@@ -172,7 +172,6 @@ export async function PATCH(
       method: 'PATCH',
       headers: fetchHeaders,
       body,
-      credentials: 'include',
     });
 
     const data = await response.json();
@@ -180,7 +179,7 @@ export async function PATCH(
   } catch (error) {
     console.error('[PROXY] PATCH error:', error);
     return NextResponse.json(
-      { success: false, message: 'Proxy error' },
+      { success: false, message: 'Proxy error', error: String(error) },
       { status: 500 }
     );
   }

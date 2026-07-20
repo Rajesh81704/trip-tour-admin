@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Package } from "@/types/package";
+import { Package, FlightOption, HotelOption } from "@/types/package";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Minus, Plus, Upload, X } from "lucide-react";
+import { Minus, Plus, Upload, X, Plane, Hotel } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -20,6 +20,47 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+
+const flightSchema = z.object({
+  type: z.enum(["main", "internal"]),
+  airline: z.string().min(1, "Airline is required"),
+  flightNumber: z.string().min(1, "Flight number is required"),
+  departureCity: z.string().min(1, "Departure city is required"),
+  departureAirport: z.string().min(1, "Departure airport is required"),
+  departureTime: z.string().min(1, "Departure time is required"),
+  departureDate: z.string().min(1, "Departure date is required"),
+  arrivalCity: z.string().min(1, "Arrival city is required"),
+  arrivalAirport: z.string().min(1, "Arrival airport is required"),
+  arrivalTime: z.string().min(1, "Arrival time is required"),
+  arrivalDate: z.string().min(1, "Arrival date is required"),
+  duration: z.string().min(1, "Duration is required"),
+  class: z.enum(["economy", "business", "first"]),
+  price: z.number().min(0, "Price must be positive"),
+  description: z.string().optional(),
+  image: z.object({
+    url: z.string(),
+    public_id: z.string(),
+  }).optional(),
+  _id: z.string().optional(),
+});
+
+const hotelSchema = z.object({
+  location: z.string().min(1, "Location is required"),
+  hotelName: z.string().min(1, "Hotel name is required"),
+  nights: z.number().min(1, "Nights must be at least 1"),
+  roomType: z.string().min(1, "Room type is required"),
+  amenities: z.array(z.string()).optional(),
+  price: z.number().min(0, "Price must be positive"),
+  starRating: z.number().min(1).max(5).optional(),
+  checkInDate: z.string().optional(),
+  checkOutDate: z.string().optional(),
+  description: z.string().optional(),
+  image: z.object({
+    url: z.string(),
+    public_id: z.string(),
+  }).optional(),
+  _id: z.string().optional(),
+});
 
 const packageSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -58,6 +99,8 @@ const packageSchema = z.object({
     .array(z.string().min(1, "Exclusion cannot be empty"))
     .min(1, "At least one exclusion is required"),
   category: z.string().min(1, "Category is required"),
+  flights: z.array(flightSchema).optional(),
+  hotels: z.array(hotelSchema).optional(),
 });
 
 interface PackageFormProps {
@@ -74,6 +117,19 @@ export default function PackageForm({
     initialData?.images.map((img) => img.url) || []
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showFlightsSection, setShowFlightsSection] = useState(
+    (initialData?.flights && initialData.flights.length > 0) || false
+  );
+  const [showHotelsSection, setShowHotelsSection] = useState(
+    (initialData?.hotels && initialData.hotels.length > 0) || false
+  );
+  
+  // Flight and hotel image states
+  const [flightImages, setFlightImages] = useState<{ [key: number]: File | null }>({});
+  const [flightPreviews, setFlightPreviews] = useState<{ [key: number]: string }>({});
+  const [hotelImages, setHotelImages] = useState<{ [key: number]: File | null }>({});
+  const [hotelPreviews, setHotelPreviews] = useState<{ [key: number]: string }>({});
+  
   const router = useRouter();
 
   const form = useForm<z.infer<typeof packageSchema>>({
@@ -91,6 +147,8 @@ export default function PackageForm({
       inclusions: [""],
       exclusions: [""],
       category: "",
+      flights: [],
+      hotels: [],
     },
   });
 
@@ -101,6 +159,30 @@ export default function PackageForm({
       setPreviews((prev) => [...prev, preview]);
     });
   }, []);
+
+  const onFlightImageDrop = useCallback(
+    (flightIndex: number, acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        const file = acceptedFiles[0];
+        setFlightImages((prev) => ({ ...prev, [flightIndex]: file }));
+        const preview = URL.createObjectURL(file);
+        setFlightPreviews((prev) => ({ ...prev, [flightIndex]: preview }));
+      }
+    },
+    []
+  );
+
+  const onHotelImageDrop = useCallback(
+    (hotelIndex: number, acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        const file = acceptedFiles[0];
+        setHotelImages((prev) => ({ ...prev, [hotelIndex]: file }));
+        const preview = URL.createObjectURL(file);
+        setHotelPreviews((prev) => ({ ...prev, [hotelIndex]: preview }));
+      }
+    },
+    []
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -119,16 +201,56 @@ export default function PackageForm({
       setIsSubmitting(true);
       const formData = new FormData();
 
-      // Append all form fields
+      // Process flights with images
+      if (values.flights && values.flights.length > 0) {
+        const flightsWithImages = values.flights.map((flight, index) => ({
+          ...flight,
+          image: flightImages[index] ? { file: flightImages[index] } : flight.image,
+        }));
+        formData.append("flights", JSON.stringify(flightsWithImages.map(f => {
+          const { image, ...rest } = f;
+          return rest;
+        })));
+        
+        // Append flight images
+        Object.entries(flightImages).forEach(([index, file]) => {
+          if (file) {
+            formData.append(`flight_image_${index}`, file);
+          }
+        });
+      }
+
+      // Process hotels with images
+      if (values.hotels && values.hotels.length > 0) {
+        const hotelsWithImages = values.hotels.map((hotel, index) => ({
+          ...hotel,
+          image: hotelImages[index] ? { file: hotelImages[index] } : hotel.image,
+        }));
+        formData.append("hotels", JSON.stringify(hotelsWithImages.map(h => {
+          const { image, ...rest } = h;
+          return rest;
+        })));
+
+        // Append hotel images
+        Object.entries(hotelImages).forEach(([index, file]) => {
+          if (file) {
+            formData.append(`hotel_image_${index}`, file);
+          }
+        });
+      }
+
+      // Append all other form fields (excluding flights and hotels as they're handled above)
       Object.entries(values).forEach(([key, value]) => {
-        if (typeof value === "object") {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, value.toString());
+        if (key !== "flights" && key !== "hotels") {
+          if (typeof value === "object") {
+            formData.append(key, JSON.stringify(value));
+          } else {
+            formData.append(key, value.toString());
+          }
         }
       });
 
-      // Append images
+      // Append package images
       images.forEach((image) => {
         formData.append("images", image);
       });
@@ -668,6 +790,630 @@ export default function PackageForm({
             </FormItem>
           )}
         />
+
+        {/* FLIGHTS SECTION */}
+        <div className="border-t pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Plane className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">Flights (Optional)</h3>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFlightsSection(!showFlightsSection)}
+            >
+              {showFlightsSection ? "Hide" : "Show"} Flights
+            </Button>
+          </div>
+
+          {showFlightsSection && (
+            <FormField
+              control={form.control}
+              name="flights"
+              render={({ field }) => (
+                <FormItem>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newFlight: FlightOption = {
+                        type: "main",
+                        airline: "",
+                        flightNumber: "",
+                        departureCity: "",
+                        departureAirport: "",
+                        departureTime: "",
+                        departureDate: "",
+                        arrivalCity: "",
+                        arrivalAirport: "",
+                        arrivalTime: "",
+                        arrivalDate: "",
+                        duration: "",
+                        class: "economy",
+                        price: 0,
+                        description: "",
+                      };
+                      field.onChange([...(field.value || []), newFlight]);
+                    }}
+                    className="mb-4"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Flight
+                  </Button>
+
+                  <div className="space-y-4">
+                    {field.value && field.value.map((flight, flightIndex) => (
+                      <div
+                        key={flightIndex}
+                        className="border border-0.5 border-blue-200/30 p-4 rounded-lg bg-blue-50/30"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <h4 className="font-medium">
+                            Flight {flightIndex + 1} - {flight.airline}
+                          </h4>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              const newFlights = (field.value || []).filter(
+                                (_: FlightOption, i: number) => i !== flightIndex
+                              );
+                              field.onChange(newFlights);
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Type</label>
+                            <select
+                              value={flight.type}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].type = e.target.value as "main" | "internal";
+                                field.onChange(newFlights);
+                              }}
+                              className="w-full border rounded p-2 text-sm"
+                            >
+                              <option value="main">Main Flight (International)</option>
+                              <option value="internal">Internal Flight (Domestic)</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Airline</label>
+                            <Input
+                              value={flight.airline}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].airline = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                              placeholder="e.g., VietJet Air"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Flight Number</label>
+                            <Input
+                              value={flight.flightNumber}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].flightNumber = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                              placeholder="e.g., VJ 1806"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Class</label>
+                            <select
+                              value={flight.class}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].class = e.target.value as "economy" | "business" | "first";
+                                field.onChange(newFlights);
+                              }}
+                              className="w-full border rounded p-2 text-sm"
+                            >
+                              <option value="economy">Economy</option>
+                              <option value="business">Business</option>
+                              <option value="first">First</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Departure City</label>
+                            <Input
+                              value={flight.departureCity}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].departureCity = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                              placeholder="e.g., Ahmedabad, IN"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Departure Airport</label>
+                            <Input
+                              value={flight.departureAirport}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].departureAirport = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                              placeholder="e.g., AMD"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Departure Time</label>
+                            <Input
+                              type="time"
+                              value={flight.departureTime}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].departureTime = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Departure Date</label>
+                            <Input
+                              type="date"
+                              value={flight.departureDate}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].departureDate = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Arrival City</label>
+                            <Input
+                              value={flight.arrivalCity}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].arrivalCity = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                              placeholder="e.g., Ho Chi Minh City, VN"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Arrival Airport</label>
+                            <Input
+                              value={flight.arrivalAirport}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].arrivalAirport = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                              placeholder="e.g., SGN"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Arrival Time</label>
+                            <Input
+                              type="time"
+                              value={flight.arrivalTime}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].arrivalTime = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Arrival Date</label>
+                            <Input
+                              type="date"
+                              value={flight.arrivalDate}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].arrivalDate = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Duration</label>
+                            <Input
+                              value={flight.duration}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].duration = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                              placeholder="e.g., 9h 20m"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Price</label>
+                            <Input
+                              type="number"
+                              value={flight.price}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].price = parseFloat(e.target.value);
+                                field.onChange(newFlights);
+                              }}
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-medium mb-1 block">Description</label>
+                            <Textarea
+                              value={flight.description || ""}
+                              onChange={(e) => {
+                                const newFlights = [...(field.value || [])];
+                                newFlights[flightIndex].description = e.target.value;
+                                field.onChange(newFlights);
+                              }}
+                              placeholder="Optional flight details"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-medium mb-1 block">Flight Image (Optional)</label>
+                            <div className="flex gap-3">
+                              <div className="flex-1">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    if (e.target.files) {
+                                      onFlightImageDrop(flightIndex, Array.from(e.target.files));
+                                    }
+                                  }}
+                                  className="hidden"
+                                  id={`flight-image-${flightIndex}`}
+                                />
+                                <label
+                                  htmlFor={`flight-image-${flightIndex}`}
+                                  className="cursor-pointer border-2 border-dashed border-blue-300 rounded p-3 text-center hover:bg-blue-50 block"
+                                >
+                                  <Upload className="h-4 w-4 mx-auto mb-1 text-blue-500" />
+                                  <span className="text-xs text-gray-600">Click to upload flight image</span>
+                                </label>
+                              </div>
+                              {(flightPreviews[flightIndex] || flight.image?.url) && (
+                                <div className="relative">
+                                  <Image
+                                    src={flightPreviews[flightIndex] || flight.image?.url || ""}
+                                    alt="Flight"
+                                    width={80}
+                                    height={80}
+                                    className="rounded object-cover"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-0 right-0 h-5 w-5"
+                                    onClick={() => {
+                                      setFlightImages((prev) => {
+                                        const newFlights = { ...prev };
+                                        delete newFlights[flightIndex];
+                                        return newFlights;
+                                      });
+                                      setFlightPreviews((prev) => {
+                                        const newFlights = { ...prev };
+                                        delete newFlights[flightIndex];
+                                        return newFlights;
+                                      });
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
+
+        {/* HOTELS SECTION */}
+        <div className="border-t pt-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Hotel className="h-5 w-5" />
+              <h3 className="text-lg font-semibold">Hotels (Optional)</h3>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowHotelsSection(!showHotelsSection)}
+            >
+              {showHotelsSection ? "Hide" : "Show"} Hotels
+            </Button>
+          </div>
+
+          {showHotelsSection && (
+            <FormField
+              control={form.control}
+              name="hotels"
+              render={({ field }) => (
+                <FormItem>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newHotel: HotelOption = {
+                        location: "",
+                        hotelName: "",
+                        nights: 1,
+                        roomType: "",
+                        amenities: [],
+                        price: 0,
+                        starRating: 3,
+                        description: "",
+                      };
+                      field.onChange([...(field.value || []), newHotel]);
+                    }}
+                    className="mb-4"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Hotel
+                  </Button>
+
+                  <div className="space-y-4">
+                    {field.value && field.value.map((hotel, hotelIndex) => (
+                      <div
+                        key={hotelIndex}
+                        className="border border-0.5 border-green-200/30 p-4 rounded-lg bg-green-50/30"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <h4 className="font-medium">
+                            Hotel {hotelIndex + 1} - {hotel.hotelName}
+                          </h4>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => {
+                              const newHotels = (field.value || []).filter(
+                                (_: HotelOption, i: number) => i !== hotelIndex
+                              );
+                              field.onChange(newHotels);
+                            }}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Location</label>
+                            <Input
+                              value={hotel.location}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].location = e.target.value;
+                                field.onChange(newHotels);
+                              }}
+                              placeholder="e.g., Hanoi"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Hotel Name</label>
+                            <Input
+                              value={hotel.hotelName}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].hotelName = e.target.value;
+                                field.onChange(newHotels);
+                              }}
+                              placeholder="e.g., Sunway Hotel"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Number of Nights</label>
+                            <Input
+                              type="number"
+                              value={hotel.nights}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].nights = parseInt(e.target.value);
+                                field.onChange(newHotels);
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Room Type</label>
+                            <Input
+                              value={hotel.roomType}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].roomType = e.target.value;
+                                field.onChange(newHotels);
+                              }}
+                              placeholder="e.g., Deluxe Room"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Price (per night)</label>
+                            <Input
+                              type="number"
+                              value={hotel.price}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].price = parseFloat(e.target.value);
+                                field.onChange(newHotels);
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Star Rating</label>
+                            <select
+                              value={hotel.starRating || 3}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].starRating = parseInt(e.target.value);
+                                field.onChange(newHotels);
+                              }}
+                              className="w-full border rounded p-2 text-sm"
+                            >
+                              <option value="1">1 Star</option>
+                              <option value="2">2 Stars</option>
+                              <option value="3">3 Stars</option>
+                              <option value="4">4 Stars</option>
+                              <option value="5">5 Stars</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Check-in Date</label>
+                            <Input
+                              type="date"
+                              value={hotel.checkInDate || ""}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].checkInDate = e.target.value;
+                                field.onChange(newHotels);
+                              }}
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium mb-1 block">Check-out Date</label>
+                            <Input
+                              type="date"
+                              value={hotel.checkOutDate || ""}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].checkOutDate = e.target.value;
+                                field.onChange(newHotels);
+                              }}
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-medium mb-1 block">Amenities</label>
+                            <Input
+                              value={hotel.amenities?.join(", ") || ""}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].amenities = e.target.value
+                                  .split(",")
+                                  .map((a) => a.trim())
+                                  .filter((a) => a !== "");
+                                field.onChange(newHotels);
+                              }}
+                              placeholder="e.g., WiFi, AC, TV, Gym (comma-separated)"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-medium mb-1 block">Description</label>
+                            <Textarea
+                              value={hotel.description || ""}
+                              onChange={(e) => {
+                                const newHotels = [...(field.value || [])];
+                                newHotels[hotelIndex].description = e.target.value;
+                                field.onChange(newHotels);
+                              }}
+                              placeholder="Optional hotel details"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-medium mb-1 block">Hotel Image (Optional)</label>
+                            <div className="flex gap-3">
+                              <div className="flex-1">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    if (e.target.files) {
+                                      onHotelImageDrop(hotelIndex, Array.from(e.target.files));
+                                    }
+                                  }}
+                                  className="hidden"
+                                  id={`hotel-image-${hotelIndex}`}
+                                />
+                                <label
+                                  htmlFor={`hotel-image-${hotelIndex}`}
+                                  className="cursor-pointer border-2 border-dashed border-green-300 rounded p-3 text-center hover:bg-green-50 block"
+                                >
+                                  <Upload className="h-4 w-4 mx-auto mb-1 text-green-500" />
+                                  <span className="text-xs text-gray-600">Click to upload hotel image</span>
+                                </label>
+                              </div>
+                              {(hotelPreviews[hotelIndex] || hotel.image?.url) && (
+                                <div className="relative">
+                                  <Image
+                                    src={hotelPreviews[hotelIndex] || hotel.image?.url || ""}
+                                    alt="Hotel"
+                                    width={80}
+                                    height={80}
+                                    className="rounded object-cover"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute top-0 right-0 h-5 w-5"
+                                    onClick={() => {
+                                      setHotelImages((prev) => {
+                                        const newHotels = { ...prev };
+                                        delete newHotels[hotelIndex];
+                                        return newHotels;
+                                      });
+                                      setHotelPreviews((prev) => {
+                                        const newHotels = { ...prev };
+                                        delete newHotels[hotelIndex];
+                                        return newHotels;
+                                      });
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </FormItem>
+              )}
+            />
+          )}
+        </div>
 
         <div
           {...getRootProps()}

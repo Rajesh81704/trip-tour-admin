@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Star } from "lucide-react";
+import { Pencil, Star, Plane, Hotel, MapPin } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ConfirmDelete from "./confirmDelete";
@@ -29,17 +29,20 @@ function getAverageRating(reviews: Package["reviews"]) {
 export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(true);
+  const [expandedSection, setExpandedSection] = useState<"flights" | "hotels" | null>(null);
 
   const handleDelete = async () => {
     await onDelete(pkg._id);
     setVisible(false);
   };
-  console.log(pkg);
 
   if (!visible) return null;
 
+  const hasFlights = pkg.flights && pkg.flights.length > 0;
+  const hasHotels = pkg.hotels && pkg.hotels.length > 0;
+
   return (
-    <Card className="w-full max-w-md shadow-lg hover:shadow-xl transition-shadow duration-200 py-0">
+    <Card className="w-full max-w-md shadow-lg hover:shadow-xl transition-shadow duration-200 py-0 flex flex-col">
       <CardHeader className="p-0 relative">
         <div className="aspect-[16/9] w-full overflow-hidden rounded-t-md">
           <Image
@@ -50,7 +53,7 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
             height={500}
           />
         </div>
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
           <Badge variant="secondary">
             {pkg.location.city}, {pkg.location.state}
           </Badge>
@@ -59,7 +62,7 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
           )}
         </div>
       </CardHeader>
-      <CardContent className="py-4 px-6">
+      <CardContent className="py-4 px-6 flex-1">
         <div className="flex items-center justify-between mb-2">
           <CardTitle className="text-lg font-semibold">{pkg.title}</CardTitle>
           <div className="flex items-center gap-1">
@@ -85,6 +88,77 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
           </span>
         </div>
         <div className="text-sm line-clamp-2 mb-3">{pkg.description}</div>
+
+        {/* Flights & Hotels Info */}
+        <div className="space-y-2 mb-3">
+          {/* Flights Summary */}
+          {hasFlights && (
+            <div className="bg-blue-50 dark:bg-blue-950 p-2 rounded border border-blue-200 dark:border-blue-800">
+              <button
+                onClick={() => setExpandedSection(expandedSection === "flights" ? null : "flights")}
+                className="w-full flex items-center justify-between text-sm font-medium text-blue-700 dark:text-blue-300 hover:opacity-75 transition-opacity"
+              >
+                <div className="flex items-center gap-1">
+                  <Plane className="w-4 h-4" />
+                  <span>{pkg.flights?.length} Flight{pkg.flights?.length !== 1 ? "s" : ""}</span>
+                </div>
+                <span className="text-xs">{expandedSection === "flights" ? "▼" : "▶"}</span>
+              </button>
+              {expandedSection === "flights" && (
+                <div className="mt-2 space-y-1 text-xs text-blue-600 dark:text-blue-200">
+                  {pkg.flights?.map((flight, idx) => (
+                    <div key={idx} className="flex items-start gap-2 pl-2 border-l-2 border-blue-300">
+                      <div className="flex-1">
+                        <div className="font-medium">{flight.airline} #{flight.flightNumber}</div>
+                        <div className="opacity-75">
+                          {flight.departureCity} → {flight.arrivalCity}
+                        </div>
+                        <div className="opacity-75">
+                          ₹{flight.price?.toLocaleString() || "N/A"}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Hotels Summary */}
+          {hasHotels && (
+            <div className="bg-green-50 dark:bg-green-950 p-2 rounded border border-green-200 dark:border-green-800">
+              <button
+                onClick={() => setExpandedSection(expandedSection === "hotels" ? null : "hotels")}
+                className="w-full flex items-center justify-between text-sm font-medium text-green-700 dark:text-green-300 hover:opacity-75 transition-opacity"
+              >
+                <div className="flex items-center gap-1">
+                  <Hotel className="w-4 h-4" />
+                  <span>{pkg.hotels?.length} Hotel{pkg.hotels?.length !== 1 ? "s" : ""}</span>
+                </div>
+                <span className="text-xs">{expandedSection === "hotels" ? "▼" : "▶"}</span>
+              </button>
+              {expandedSection === "hotels" && (
+                <div className="mt-2 space-y-1 text-xs text-green-600 dark:text-green-200">
+                  {pkg.hotels?.map((hotel, idx) => (
+                    <div key={idx} className="flex items-start gap-2 pl-2 border-l-2 border-green-300">
+                      <div className="flex-1">
+                        <div className="font-medium">{hotel.hotelName}</div>
+                        <div className="opacity-75 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {hotel.location} • {hotel.nights}N
+                        </div>
+                        <div className="opacity-75">
+                          ₹{hotel.price?.toLocaleString() || "N/A"}/night
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="flex items-center gap-2">
           {pkg.discount > 0 ? (
             <>
@@ -107,7 +181,7 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
       </CardContent>
       <CardFooter className="px-6 pb-4 flex gap-2">
         <Button
-          className="w- cursor-pointer"
+          className="w-full cursor-pointer"
           variant="default"
           onClick={() => router.push(`/packages/edit/${pkg._id}`)}
         >
