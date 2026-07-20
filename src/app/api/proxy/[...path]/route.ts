@@ -41,16 +41,27 @@ export async function POST(
 ) {
   try {
     const path = (await params).path.join('/');
-    const body = await request.json();
+    const contentType = request.headers.get('content-type');
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const targetUrl = `${backendUrl}/${path}`;
 
+    let body: FormData | string;
+    const fetchHeaders: Record<string, string> = {};
+
+    if (contentType?.includes('multipart/form-data')) {
+      // Handle FormData
+      body = await request.formData();
+      // Don't set Content-Type; fetch will set it with boundary
+    } else {
+      // Handle JSON
+      body = JSON.stringify(await request.json());
+      fetchHeaders['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(targetUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      headers: fetchHeaders,
+      body,
       credentials: 'include',
     });
 
@@ -71,16 +82,27 @@ export async function PUT(
 ) {
   try {
     const path = (await params).path.join('/');
-    const body = await request.json();
+    const contentType = request.headers.get('content-type');
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const targetUrl = `${backendUrl}/${path}`;
 
+    let body: FormData | string;
+    const fetchHeaders: Record<string, string> = {};
+
+    if (contentType?.includes('multipart/form-data')) {
+      // Handle FormData
+      body = await request.formData();
+      // Don't set Content-Type; fetch will set it with boundary
+    } else {
+      // Handle JSON
+      body = JSON.stringify(await request.json());
+      fetchHeaders['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(targetUrl, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      headers: fetchHeaders,
+      body,
       credentials: 'include',
     });
 
@@ -129,16 +151,27 @@ export async function PATCH(
 ) {
   try {
     const path = (await params).path.join('/');
-    const body = await request.json();
+    const contentType = request.headers.get('content-type');
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const targetUrl = `${backendUrl}/${path}`;
 
+    let body: FormData | string;
+    const fetchHeaders: Record<string, string> = {};
+
+    if (contentType?.includes('multipart/form-data')) {
+      // Handle FormData
+      body = await request.formData();
+      // Don't set Content-Type; fetch will set it with boundary
+    } else {
+      // Handle JSON
+      body = JSON.stringify(await request.json());
+      fetchHeaders['Content-Type'] = 'application/json';
+    }
+
     const response = await fetch(targetUrl, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
+      headers: fetchHeaders,
+      body,
       credentials: 'include',
     });
 

@@ -40,15 +40,15 @@ class ApiClient {
         }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async post<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    async post<T>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const proxyUrl = url.startsWith('/proxy/') || url.startsWith('/auth/') ? url : `/proxy${url}`;
             if (process.env.NODE_ENV === 'development') {
-                console.log('[ApiClient] POST request to:', proxyUrl);
+                console.log('[ApiClient] POST request to:', proxyUrl, 'isFormData:', isFormData);
             }
-            const response: AxiosResponse<T> = await this.client.post(proxyUrl, data, {
-                headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
-            });
+            // Let axios handle FormData automatically - it will set the correct Content-Type with boundary
+            const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
+            const response: AxiosResponse<T> = await this.client.post(proxyUrl, data, config);
             return { data: response.data, status: response.status };
         } catch (error) {
             this.handleError(error);
@@ -57,12 +57,15 @@ class ApiClient {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async put<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    async put<T>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
-            const response: AxiosResponse<T> = await this.client.put(proxyUrl, data, {
-                headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
-            });
+            if (process.env.NODE_ENV === 'development') {
+                console.log('[ApiClient] PUT request to:', proxyUrl, 'isFormData:', isFormData);
+            }
+            // Let axios handle FormData automatically - it will set the correct Content-Type with boundary
+            const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
+            const response: AxiosResponse<T> = await this.client.put(proxyUrl, data, config);
             return { data: response.data, status: response.status };
         } catch (error) {
             this.handleError(error);
@@ -82,12 +85,15 @@ class ApiClient {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async patch<T>(url: string, data: Record<string, any>, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    async patch<T>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
-            const response: AxiosResponse<T> = await this.client.patch(proxyUrl, data, {
-                headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : { 'Content-Type': 'application/json' }
-            });
+            if (process.env.NODE_ENV === 'development') {
+                console.log('[ApiClient] PATCH request to:', proxyUrl, 'isFormData:', isFormData);
+            }
+            // Let axios handle FormData automatically - it will set the correct Content-Type with boundary
+            const config = isFormData ? {} : { headers: { 'Content-Type': 'application/json' } };
+            const response: AxiosResponse<T> = await this.client.patch(proxyUrl, data, config);
             return { data: response.data, status: response.status };
         } catch (error) {
             this.handleError(error);
