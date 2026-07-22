@@ -15,6 +15,9 @@ export interface PackageItineraryItem {
     day: number;
     title: string;
     description: string;
+    hotelName?: string;
+    city?: string;
+    _id?: string;
 }
 
 export interface FlightOption {
@@ -33,10 +36,7 @@ export interface FlightOption {
     class: "economy" | "business" | "first";
     price: number;
     description?: string;
-    image?: {
-        url: string;
-        public_id: string;
-    };
+    image?: { url: string; public_id: string };
     _id?: string;
 }
 
@@ -51,10 +51,19 @@ export interface HotelOption {
     checkInDate?: string;
     checkOutDate?: string;
     description?: string;
-    image?: {
-        url: string;
-        public_id: string;
-    };
+    /** Multiple hotel images */
+    images?: { url: string; public_id: string }[];
+    /** Legacy single image */
+    image?: { url: string; public_id: string };
+    _id?: string;
+}
+
+export interface SightseeingOption {
+    name: string;
+    description?: string;
+    location?: string;
+    duration?: string;
+    images?: { url: string; public_id: string }[];
     _id?: string;
 }
 
@@ -65,10 +74,7 @@ export interface Package {
     title: string;
     price: number;
     reviews: Review[];
-    images: {
-        url: string;
-        public_id: string;
-    }[];
+    images: { url: string; public_id: string }[];
     features: string[];
     discount: number;
     description: string;
@@ -78,7 +84,27 @@ export interface Package {
     exclusions: string[];
     flights?: FlightOption[];
     hotels?: HotelOption[];
+    sightseeings?: SightseeingOption[];
     category: string;
     createdAt: Date;
     updatedAt: Date;
 }
+
+export const PACKAGE_CATEGORIES = [
+    "Adventure",
+    "Cultural",
+    "Luxury",
+    "Budget",
+    "Honeymoon",
+    "Family",
+    "Nature & Adventure",
+    "Beach",
+    "Hill Station",
+    "Wildlife",
+    "Pilgrimage",
+    "International",
+    "Cruise",
+    "Weekend Getaway",
+] as const;
+
+export type PackageCategory = typeof PACKAGE_CATEGORIES[number];

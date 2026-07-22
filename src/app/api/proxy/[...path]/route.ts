@@ -53,8 +53,20 @@ export async function POST(
     if (cookie) fetchHeaders['cookie'] = cookie;
 
     if (contentType.includes('multipart/form-data')) {
-      // Stream FormData directly to backend without re-parsing
-      body = await request.formData();
+      // Re-build FormData to ensure file buffers are properly forwarded
+      const incomingForm = await request.formData();
+      const outgoingForm = new FormData();
+      for (const [key, value] of incomingForm.entries()) {
+        if (value instanceof Blob) {
+          // Read the blob into an ArrayBuffer and create a fresh Blob
+          const buffer = await value.arrayBuffer();
+          const filename = value instanceof File ? value.name : 'file';
+          outgoingForm.append(key, new Blob([buffer], { type: value.type }), filename);
+        } else {
+          outgoingForm.append(key, value);
+        }
+      }
+      body = outgoingForm;
       // Do NOT set Content-Type — fetch sets it with the boundary automatically
     } else {
       body = JSON.stringify(await request.json());

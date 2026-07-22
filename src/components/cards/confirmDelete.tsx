@@ -14,11 +14,13 @@ import { Trash } from "lucide-react";
 interface ConfirmDeleteProps {
   title: string;
   onConfirm: () => Promise<void>;
+  className?: string;
 }
 
 export default function ConfirmDelete({
   onConfirm,
   title,
+  className,
 }: ConfirmDeleteProps) {
   const [open, setOpen] = useState(false);
 
@@ -29,8 +31,8 @@ export default function ConfirmDelete({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive">
-          Delete <Trash className="w-4 h-4" />
+        <Button variant="destructive" className={className}>
+          <Trash className="w-4 h-4" /> Delete
         </Button>
       </DialogTrigger>
       <DialogContent>

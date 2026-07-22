@@ -1,338 +1,9 @@
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import {
-//   Calendar,
-//   Package,
-//   Star,
-//   Users,
-//   Send,
-//   Mail,
-//   MessageSquare,
-// } from "lucide-react";
-// import api from "@/lib/api";
-
-// interface Review {
-//   _id: string;
-//   rating: number;
-//   comment: string;
-//   user: {
-//     _id: string;
-//     name: string;
-//   };
-//   package: {
-//     _id: string;
-//   };
-//   createdAt: string;
-// }
-
-// interface Inquiry {
-//   _id: string;
-//   name: string;
-//   mobileNumber: string;
-//   email: string;
-//   destination: string;
-//   message: string;
-//   createdAt: string;
-// }
-
-// interface B2BRequest {
-//   _id: string;
-//   companyName: string;
-//   email: string;
-//   phone: string;
-//   website?: string;
-//   message: string;
-//   contactName: string;
-//   inquiryType: string;
-//   createdAt: string;
-// }
-
-// interface Package {
-//   _id: string;
-//   title: string;
-//   location: {
-//     city: string;
-//     state: string;
-//     destination: string;
-//   };
-//   duration: {
-//     day: number;
-//     night: number;
-//   };
-//   price: number;
-//   discount: number;
-//   reviews: string[];
-//   images: string[];
-//   features: string[];
-//   description: string;
-//   highlights: string[];
-//   itinerary: Array<{
-//     day: number;
-//     title: string;
-//     description: string;
-//     _id: string;
-//   }>;
-//   inclusions: string[];
-//   exclusions: string[];
-//   category: string;
-//   createdAt: string;
-//   updatedAt: string;
-// }
-
-// interface DashboardData {
-//   totalUsers: number;
-//   totalPackages: number;
-//   totalInquiries: number;
-//   totalB2BRequests: number;
-//   totalContacts: number;
-//   totalReviews: number;
-//   recentInquiries: Inquiry[];
-//   recentReviews: Review[];
-//   recentB2BRequests: B2BRequest[];
-//   reviewStats: {
-//     averageRating: number;
-//     fiveStars: number;
-//     fourStars: number;
-//     threeStars: number;
-//     twoStars: number;
-//     oneStar: number;
-//   };
-//   popularPackages: Package[];
-// }
-
-// export default function Dashboard() {
-//   const [dashboardData, setDashboardData] = useState<DashboardData>({
-//     totalUsers: 0,
-//     totalPackages: 0,
-//     totalInquiries: 0,
-//     totalB2BRequests: 0,
-//     totalContacts: 0,
-//     totalReviews: 0,
-//     recentInquiries: [],
-//     recentReviews: [],
-//     recentB2BRequests: [],
-//     reviewStats: {
-//       averageRating: 0,
-//       fiveStars: 0,
-//       fourStars: 0,
-//       threeStars: 0,
-//       twoStars: 0,
-//       oneStar: 0,
-//     },
-//     popularPackages: [],
-//   });
-
-//   useEffect(() => {
-//     const fetchDashboardData = async () => {
-//       try {
-//         const response = await api.get("/info");
-//         setDashboardData(response.data as unknown as DashboardData);
-//       } catch (error) {
-//         console.error("Failed to fetch dashboard data:", error);
-//       }
-//     };
-
-//     fetchDashboardData();
-//   }, []);
-
-//   return (
-//     <div className="p-4 md:p-10">
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-//         {/* Overview Stats - Spans 2 columns on larger screens */}
-//         <Card className="md:col-span-2 lg:col-span-2">
-//           <CardHeader>
-//             <CardTitle className="flex items-center gap-2">
-//               <Package className="w-5 h-5" />
-//               Overview
-//             </CardTitle>
-//           </CardHeader>
-//           <CardContent>
-//             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-//               <div className="flex flex-col items-center p-3 bg-primary/10 rounded-lg">
-//                 <Users className="w-6 h-6 mb-2 text-primary" />
-//                 <p className="text-sm text-muted-foreground">Users</p>
-//                 <p className="text-2xl font-bold">{dashboardData.totalUsers}</p>
-//               </div>
-//               <div className="flex flex-col items-center p-3 bg-primary/10 rounded-lg">
-//                 <Package className="w-6 h-6 mb-2 text-primary" />
-//                 <p className="text-sm text-muted-foreground">Packages</p>
-//                 <p className="text-2xl font-bold">
-//                   {dashboardData.totalPackages}
-//                 </p>
-//               </div>
-//               <div className="flex flex-col items-center p-3 bg-primary/10 rounded-lg">
-//                 <MessageSquare className="w-6 h-6 mb-2 text-primary" />
-//                 <p className="text-sm text-muted-foreground">Inquiries</p>
-//                 <p className="text-2xl font-bold">
-//                   {dashboardData.totalInquiries}
-//                 </p>
-//               </div>
-//               <div className="flex flex-col items-center p-3 bg-primary/10 rounded-lg">
-//                 <Send className="w-6 h-6 mb-2 text-primary" />
-//                 <p className="text-sm text-muted-foreground">B2B</p>
-//                 <p className="text-2xl font-bold">
-//                   {dashboardData.totalB2BRequests}
-//                 </p>
-//               </div>
-//               <div className="flex flex-col items-center p-3 bg-primary/10 rounded-lg">
-//                 <Mail className="w-6 h-6 mb-2 text-primary" />
-//                 <p className="text-sm text-muted-foreground">Contacts</p>
-//                 <p className="text-2xl font-bold">
-//                   {dashboardData.totalContacts}
-//                 </p>
-//               </div>
-//               <div className="flex flex-col items-center p-3 bg-primary/10 rounded-lg">
-//                 <Star className="w-6 h-6 mb-2 text-primary" />
-//                 <p className="text-sm text-muted-foreground">Reviews</p>
-//                 <p className="text-2xl font-bold">
-//                   {dashboardData.totalReviews}
-//                 </p>
-//               </div>
-//             </div>
-//           </CardContent>
-//         </Card>
-
-//         {/* Review Statistics - Spans 2 columns on larger screens */}
-//         <Card className="md:col-span-2 lg:col-span-1">
-//           <CardHeader>
-//             <CardTitle className="flex items-center gap-2">
-//               <Star className="w-5 h-5" />
-//               Review Statistics
-//             </CardTitle>
-//           </CardHeader>
-//           <CardContent>
-//             <div className="flex items-center justify-center mb-6">
-//               <div className="text-center">
-//                 <p className="text-4xl font-bold text-primary">
-//                   {dashboardData.reviewStats.averageRating.toFixed(1)}
-//                 </p>
-//                 <p className="text-sm text-muted-foreground">Average Rating</p>
-//               </div>
-//             </div>
-//             <div className="space-y-2">
-//               {[5, 4, 3, 2, 1].map((stars) => (
-//                 <div key={stars} className="flex items-center gap-2">
-//                   <div className="w-12 text-sm">{stars} Stars</div>
-//                   <div className="flex-1 h-2 bg-primary/10 rounded-full overflow-hidden">
-//                     <div
-//                       className="h-full bg-primary"
-//                       style={{
-//                         width: `${
-//                           (dashboardData.reviewStats[
-//                             `${stars}Stars` as keyof typeof dashboardData.reviewStats
-//                           ] /
-//                             dashboardData.totalReviews) *
-//                           100
-//                         }%`,
-//                       }}
-//                     />
-//                   </div>
-//                   <div className="w-8 text-sm text-right">
-//                     {
-//                       dashboardData.reviewStats[
-//                         `${stars}Stars` as keyof typeof dashboardData.reviewStats
-//                       ]
-//                     }
-//                   </div>
-//                 </div>
-//               ))}
-//             </div>
-//           </CardContent>
-//         </Card>
-
-//         {/* Recent Activity Section - Spans full width on mobile, 2 columns on larger screens */}
-//         <Card className="md:col-span-2 lg:col-span-3">
-//           <CardHeader>
-//             <CardTitle className="flex items-center gap-2">
-//               <Calendar className="w-5 h-5" />
-//               Recent Activity
-//             </CardTitle>
-//           </CardHeader>
-//           <CardContent>
-//             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-//               <div>
-//                 <h3 className="font-medium mb-3 flex items-center gap-2">
-//                   <MessageSquare className="w-4 h-4" />
-//                   Recent Inquiries
-//                 </h3>
-//                 <div className="space-y-2">
-//                   {dashboardData.recentInquiries.map((inquiry) => (
-//                     <div key={inquiry._id} className="p-2 bg-muted rounded-lg">
-//                       <p className="font-medium">{inquiry.name}</p>
-//                       <p className="text-sm text-muted-foreground">
-//                         {inquiry.destination}
-//                       </p>
-//                       <p className="text-xs text-muted-foreground mt-1">
-//                         {new Date(inquiry.createdAt).toLocaleDateString()}
-//                       </p>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </div>
-
-//               <div>
-//                 <h3 className="font-medium mb-3 flex items-center gap-2">
-//                   <Star className="w-4 h-4" />
-//                   Recent Reviews
-//                 </h3>
-//                 <div className="space-y-2">
-//                   {dashboardData.recentReviews.map((review) => (
-//                     <div key={review._id} className="p-2 bg-muted rounded-lg">
-//                       <div className="flex items-center justify-between">
-//                         <p className="font-medium">{review.user.name}</p>
-//                         <p className="text-sm text-muted-foreground">
-//                           {review.rating} ★
-//                         </p>
-//                       </div>
-//                       <p className="text-sm text-muted-foreground mt-1">
-//                         {review.comment}
-//                       </p>
-//                       <p className="text-xs text-muted-foreground mt-1">
-//                         {new Date(review.createdAt).toLocaleDateString()}
-//                       </p>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </div>
-
-//               <div>
-//                 <h3 className="font-medium mb-3 flex items-center gap-2">
-//                   <Send className="w-4 h-4" />
-//                   Recent B2B Requests
-//                 </h3>
-//                 <div className="space-y-2">
-//                   {dashboardData.recentB2BRequests.map((request) => (
-//                     <div key={request._id} className="p-2 bg-muted rounded-lg">
-//                       <div className="flex items-center justify-between">
-//                         <p className="font-medium">{request.companyName}</p>
-//                         <p className="text-xs text-muted-foreground">
-//                           {request.contactName}
-//                         </p>
-//                       </div>
-//                       <p className="text-sm text-muted-foreground">
-//                         {request.inquiryType}
-//                       </p>
-//                       <p className="text-xs text-muted-foreground mt-1">
-//                         {new Date(request.createdAt).toLocaleDateString()}
-//                       </p>
-//                     </div>
-//                   ))}
-//                 </div>
-//               </div>
-//             </div>
-//           </CardContent>
-//         </Card>
-//       </div>
-//     </div>
-//   );
-// }
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import api from "@/lib/api";
 import ConfirmDelete from "@/components/cards/confirmDelete";
+import Link from "next/link";
 import {
   Package,
   Star,
@@ -341,21 +12,25 @@ import {
   Mail,
   MessageSquare,
   MapPin,
+  TrendingUp,
+  Plus,
+  Calendar,
+  Building2,
+  Sparkles,
+  ArrowUpRight,
+  Eye,
+  CheckCircle2,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
   BarChart,
   Bar,
   XAxis,
   YAxis,
+  Tooltip,
 } from "recharts";
 
-/* ===================== Types (match your backend) ===================== */
+/* ===================== Types ===================== */
 interface Review {
   _id: string;
   rating: number;
@@ -364,6 +39,7 @@ interface Review {
   package: { _id: string };
   createdAt: string;
 }
+
 interface Inquiry {
   _id: string;
   name: string;
@@ -373,6 +49,7 @@ interface Inquiry {
   message: string;
   createdAt: string;
 }
+
 interface B2BRequest {
   _id: string;
   companyName: string;
@@ -384,6 +61,7 @@ interface B2BRequest {
   inquiryType: string;
   createdAt: string;
 }
+
 interface PackageType {
   _id: string;
   title: string;
@@ -395,19 +73,11 @@ interface PackageType {
   images: string[];
   features: string[];
   description: string;
-  highlights: string[];
-  itinerary: Array<{
-    day: number;
-    title: string;
-    description: string;
-    _id: string;
-  }>;
-  inclusions: string[];
-  exclusions: string[];
   category: string;
   createdAt: string;
   updatedAt: string;
 }
+
 interface DashboardData {
   totalUsers: number;
   totalPackages: number;
@@ -429,24 +99,16 @@ interface DashboardData {
   popularPackages: PackageType[];
 }
 
-/* ===================== Helpers ===================== */
-const glass =
-  "rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-xl";
-
-const subGlass =
-  "rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors";
-
-const COLORS = ["#22c55e", "#3b82f6", "#facc15", "#f97316", "#ef4444"];
-
 const initialsFrom = (name: string) =>
   name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+    ? name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "NA";
 
-/* ===================== Component ===================== */
 export default function Dashboard() {
   const [now, setNow] = useState<Date>(new Date());
   const [dashboardData, setDashboardData] = useState<DashboardData>({
@@ -470,13 +132,13 @@ export default function Dashboard() {
     popularPackages: [],
   });
 
-  /* Live clock */
+  /* Live Clock */
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  /* Fetch dashboard data */
+  /* Fetch Dashboard Data */
   useEffect(() => {
     (async () => {
       try {
@@ -488,35 +150,17 @@ export default function Dashboard() {
     })();
   }, []);
 
-  /* Chart data */
-  const reviewChartData = useMemo(
-    () => [
-      { name: "5★", value: dashboardData.reviewStats.fiveStars },
-      { name: "4★", value: dashboardData.reviewStats.fourStars },
-      { name: "3★", value: dashboardData.reviewStats.threeStars },
-      { name: "2★", value: dashboardData.reviewStats.twoStars },
-      { name: "1★", value: dashboardData.reviewStats.oneStar },
-    ],
-    [dashboardData.reviewStats]
-  );
-
-  /* Simple month distribution for inquiries (client-side aggregate) */
+  /* Inquiries aggregate by month for chart */
   const inquiriesByMonth = useMemo(() => {
     const counts: Record<string, number> = {};
     dashboardData.recentInquiries.forEach((i) => {
       const d = new Date(i.createdAt);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-        2,
-        "0"
-      )}`;
+      const key = `${d.toLocaleString("default", { month: "short" })} ${d.getDate()}`;
       counts[key] = (counts[key] || 0) + 1;
     });
-    return Object.entries(counts)
-      .sort(([a], [b]) => (a > b ? 1 : -1))
-      .map(([k, v]) => ({ month: k, count: v }));
+    return Object.entries(counts).map(([k, v]) => ({ date: k, inquiries: v }));
   }, [dashboardData.recentInquiries]);
 
-  /* Delete an inquiry (uses your ConfirmDelete contract) */
   const deleteInquiry = async (id: string) => {
     await api.delete(`/inquiries/${id}`);
     setDashboardData((prev) => ({
@@ -526,366 +170,441 @@ export default function Dashboard() {
     }));
   };
 
+  /* Metric Card Definitions */
+  const statCards = [
+    {
+      title: "Total Users",
+      value: dashboardData.totalUsers,
+      icon: Users,
+      color: "from-blue-500/20 to-cyan-500/10 border-blue-500/30 text-blue-400",
+      iconBg: "bg-blue-500/20 text-blue-400",
+      trend: "Active customers",
+    },
+    {
+      title: "Tour Packages",
+      value: dashboardData.totalPackages,
+      icon: Package,
+      color: "from-indigo-500/20 to-violet-500/10 border-indigo-500/30 text-indigo-400",
+      iconBg: "bg-indigo-500/20 text-indigo-400",
+      trend: "Published packages",
+    },
+    {
+      title: "Travel Inquiries",
+      value: dashboardData.totalInquiries,
+      icon: MessageSquare,
+      color: "from-emerald-500/20 to-teal-500/10 border-emerald-500/30 text-emerald-400",
+      iconBg: "bg-emerald-500/20 text-emerald-400",
+      trend: "Customer leads",
+    },
+    {
+      title: "B2B Partner Requests",
+      value: dashboardData.totalB2BRequests,
+      icon: Building2,
+      color: "from-amber-500/20 to-orange-500/10 border-amber-500/30 text-amber-400",
+      iconBg: "bg-amber-500/20 text-amber-400",
+      trend: "Agency inquiries",
+    },
+    {
+      title: "Direct Messages",
+      value: dashboardData.totalContacts,
+      icon: Mail,
+      color: "from-rose-500/20 to-pink-500/10 border-rose-500/30 text-rose-400",
+      iconBg: "bg-rose-500/20 text-rose-400",
+      trend: "Contact submissions",
+    },
+    {
+      title: "Customer Reviews",
+      value: dashboardData.totalReviews,
+      icon: Star,
+      color: "from-yellow-500/20 to-amber-500/10 border-yellow-500/30 text-yellow-400",
+      iconBg: "bg-yellow-500/20 text-yellow-400",
+      trend: "Ratings received",
+    },
+  ];
+
+  const totalReviewsCount = dashboardData.totalReviews || 1;
+  const starBreakdown = [
+    { stars: 5, count: dashboardData.reviewStats.fiveStars },
+    { stars: 4, count: dashboardData.reviewStats.fourStars },
+    { stars: 3, count: dashboardData.reviewStats.threeStars },
+    { stars: 2, count: dashboardData.reviewStats.twoStars },
+    { stars: 1, count: dashboardData.reviewStats.oneStar },
+  ];
+
   return (
-    <div className="min-h-screen p-5 md:p-8 bg-[#0b0d13] text-white">
-      {/* Top bar */}
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Dashboard
-        </h1>
-        <div className={`${glass} px-4 py-2 text-sm text-gray-300`}>
-          {now.toLocaleString(undefined, {
-            weekday: "short",
-            year: "numeric",
-            month: "short",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
+      {/* ── Welcome Banner Header ────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-primary/20 to-slate-900 border border-border/80 p-6 sm:p-8 shadow-xl">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5" /> TripToo Admin Control Center
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+              Welcome back, Admin 👋
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-xl">
+              Here is your agency overview. Track customer inquiries, package listings, and review analytics in real time.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="px-4 py-2 rounded-2xl bg-card/80 backdrop-blur-md border border-border/80 text-xs font-medium text-muted-foreground flex items-center gap-2 shadow-xs">
+              <Calendar className="w-4 h-4 text-primary" />
+              <span>
+                {now.toLocaleString(undefined, {
+                  weekday: "short",
+                  month: "short",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
+              </span>
+            </div>
+            <Link
+              href="/packages/new"
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 py-2 rounded-2xl text-xs shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Plus className="w-4 h-4" /> Add Package
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Key Metrics Grid (6 Tiles) ──────────────────────────────────── */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-foreground tracking-tight flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Overview Metrics
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {statCards.map((card, idx) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={idx}
+                className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${card.color} p-5 shadow-xs hover:shadow-md transition-all duration-300 group hover:-translate-y-0.5`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {card.title}
+                    </p>
+                    <p className="text-3xl font-black text-foreground tracking-tight">
+                      {card.value}
+                    </p>
+                  </div>
+                  <div
+                    className={`w-11 h-11 rounded-xl ${card.iconBg} flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform duration-300`}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span className="font-medium">{card.trend}</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+            );
           })}
         </div>
       </div>
 
-      {/* Overview + Review stats */}
+      {/* ── Analytics & Review Breakdown Row ─────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Overview cards */}
-        <Card className={`${glass} lg:col-span-2`}>
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Package className="w-5 h-5 text-primary" />
-              Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {[
-              { label: "Users", value: dashboardData.totalUsers, icon: Users },
-              {
-                label: "Packages",
-                value: dashboardData.totalPackages,
-                icon: Package,
-              },
-              {
-                label: "Inquiries",
-                value: dashboardData.totalInquiries,
-                icon: MessageSquare,
-              },
-              {
-                label: "B2B",
-                value: dashboardData.totalB2BRequests,
-                icon: Send,
-              },
-              {
-                label: "Contacts",
-                value: dashboardData.totalContacts,
-                icon: Mail,
-              },
-              {
-                label: "Reviews",
-                value: dashboardData.totalReviews,
-                icon: Star,
-              },
-            ].map((stat, i) => {
-              const Icon = stat.icon;
+        {/* Review Rating Breakdown Card */}
+        <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-4 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-yellow-500/10 text-yellow-400 flex items-center justify-center font-bold">
+                <Star className="w-4 h-4 fill-yellow-400" />
+              </div>
+              <h3 className="text-base font-bold text-foreground">Rating Summary</h3>
+            </div>
+            <span className="text-xs text-muted-foreground font-semibold">
+              {dashboardData.totalReviews} reviews
+            </span>
+          </div>
+
+          <div className="py-6 flex items-center gap-6 justify-center">
+            <div className="text-center">
+              <span className="text-5xl font-black text-foreground tracking-tight">
+                {dashboardData.reviewStats.averageRating.toFixed(1)}
+              </span>
+              <div className="flex items-center justify-center gap-1 mt-1 text-yellow-400">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-4 h-4 ${
+                      s <= Math.round(dashboardData.reviewStats.averageRating)
+                        ? "fill-yellow-400"
+                        : "text-muted opacity-40"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1 font-medium">Average Rating</p>
+            </div>
+          </div>
+
+          {/* Star Rating Distribution Bars */}
+          <div className="space-y-2.5 pt-2">
+            {starBreakdown.map(({ stars, count }) => {
+              const pct = Math.round((count / totalReviewsCount) * 100);
               return (
-                <div
-                  key={i}
-                  className={`${subGlass} p-4 flex items-center gap-3`}
-                >
-                  <div className="p-2 bg-white/10 rounded-lg">
-                    <Icon className="w-5 h-5 text-primary" />
+                <div key={stars} className="flex items-center gap-3 text-xs">
+                  <div className="w-12 font-semibold text-muted-foreground flex items-center gap-1">
+                    <span>{stars}</span>
+                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                   </div>
-                  <div>
-                    <div className="text-xl font-bold">{stat.value}</div>
-                    <div className="text-xs text-gray-400">{stat.label}</div>
+
+                  <div className="flex-1 h-2.5 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+
+                  <div className="w-8 text-right font-bold text-foreground">
+                    {count}
                   </div>
                 </div>
               );
             })}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Review statistics */}
-        <Card className={`${glass}`}>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Star className="w-5 h-5 text-yellow-400" />
-              Review Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <div className="text-center mb-2">
-              <div className="text-4xl font-bold text-yellow-400">
-                {dashboardData.reviewStats.averageRating.toFixed(1)}
+        {/* Inquiries Trend Chart Card */}
+        <div className="lg:col-span-2 bg-card border border-border/60 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-4 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                <MessageSquare className="w-4 h-4" />
               </div>
-              <div className="text-xs text-gray-400">Average Rating</div>
+              <div>
+                <h3 className="text-base font-bold text-foreground">Inquiries Trend</h3>
+                <p className="text-xs text-muted-foreground">Recent lead volume by date</p>
+              </div>
             </div>
+          </div>
 
-            <div className={`${subGlass} p-3`}>
-              <ResponsiveContainer width="100%" height={190}>
-                <PieChart>
-                  <Pie
-                    data={reviewChartData}
-                    dataKey="value"
-                    outerRadius={75}
-                    label
-                  >
-                    {reviewChartData.map((_, idx) => (
-                      <Cell key={idx} fill={COLORS[idx]} />
-                    ))}
-                  </Pie>
+          <div className="pt-6 h-56 w-full">
+            {inquiriesByMonth.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={inquiriesByMonth}>
+                  <XAxis dataKey="date" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "#111827",
-                      border: "none",
+                      backgroundColor: "rgba(15, 23, 42, 0.9)",
+                      borderColor: "rgba(255, 255, 255, 0.1)",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      color: "#ffffff",
                     }}
                   />
-                </PieChart>
+                  <Bar dataKey="inquiries" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-xs">
+                <MessageSquare className="w-8 h-8 mb-2 opacity-30" />
+                No inquiry trend data available yet.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Recent Inquiries Table Section ──────────────────────────────── */}
+      <div className="bg-card border border-border/60 rounded-3xl overflow-hidden shadow-xs">
+        <div className="p-6 border-b border-border/40 flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+              <MessageSquare className="w-5 h-5" />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Inquiries table (like your screenshot) */}
-      <div className={`${glass} mt-6`}>
-        <div className="flex items-center justify-between p-5 pb-3">
-          <h2 className="text-lg font-semibold">Recent Inquiries</h2>
-          <div className="text-xs text-gray-400">
-            Showing {Math.min(10, dashboardData.recentInquiries.length)} of{" "}
-            {dashboardData.totalInquiries}
+            <div>
+              <h3 className="text-base font-bold text-foreground">Recent Customer Inquiries</h3>
+              <p className="text-xs text-muted-foreground">Latest trip quote requests and customer messages</p>
+            </div>
           </div>
+          <span className="text-xs font-semibold bg-muted px-3 py-1 rounded-full text-muted-foreground">
+            Showing {Math.min(10, dashboardData.recentInquiries.length)} of {dashboardData.totalInquiries}
+          </span>
         </div>
 
-        <div className="px-3 pb-3">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-400">
-                  <th className="py-3 px-2">#</th>
-                  <th className="py-3 px-2">Name</th>
-                  <th className="py-3 px-2">Destination</th>
-                  <th className="py-3 px-2">Date Added</th>
-                  <th className="py-3 px-2">Message</th>
-                  <th className="py-3 px-2 text-right">Operation</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs sm:text-sm">
+            <thead>
+              <tr className="border-b border-border/40 text-muted-foreground bg-muted/30 font-semibold">
+                <th className="py-3.5 px-6">Customer</th>
+                <th className="py-3.5 px-4">Destination</th>
+                <th className="py-3.5 px-4">Date</th>
+                <th className="py-3.5 px-4">Message</th>
+                <th className="py-3.5 px-6 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/30 font-medium">
+              {dashboardData.recentInquiries.slice(0, 10).map((inq) => (
+                <tr key={inq._id} className="hover:bg-muted/40 transition-colors">
+                  {/* Customer Info */}
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/30 text-primary font-bold flex items-center justify-center text-xs shadow-xs">
+                        {initialsFrom(inq.name)}
+                      </div>
+                      <div>
+                        <p className="font-bold text-foreground text-sm line-clamp-1">{inq.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{inq.email}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* Destination */}
+                  <td className="py-4 px-4">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs border border-emerald-500/20">
+                      <MapPin className="w-3 h-3" />
+                      {inq.destination}
+                    </span>
+                  </td>
+
+                  {/* Date */}
+                  <td className="py-4 px-4 text-muted-foreground text-xs">
+                    {new Date(inq.createdAt).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </td>
+
+                  {/* Message */}
+                  <td className="py-4 px-4 max-w-xs">
+                    <p className="text-xs text-muted-foreground/90 line-clamp-1">
+                      {inq.message || "No special message provided."}
+                    </p>
+                  </td>
+
+                  {/* Delete Action */}
+                  <td className="py-4 px-6 text-right">
+                    <ConfirmDelete
+                      title="Inquiry"
+                      onConfirm={() => deleteInquiry(inq._id)}
+                      className="h-8 px-2.5 rounded-xl text-xs font-semibold bg-destructive/10 text-destructive hover:bg-destructive hover:text-white border-0 transition-colors cursor-pointer"
+                    />
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {dashboardData.recentInquiries.slice(0, 10).map((inq, idx) => (
-                  <tr
-                    key={inq._id}
-                    className="hover:bg-white/5 transition-colors"
-                  >
-                    <td className="py-3 px-2 text-gray-300">#{idx + 1}</td>
+              ))}
 
-                    {/* Name + avatar initials */}
-                    <td className="py-3 px-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white/10 grid place-items-center border border-white/10">
-                          <span className="text-xs text-gray-200">
-                            {initialsFrom(inq.name)}
-                          </span>
-                        </div>
-                        <div className="truncate">
-                          <div className="font-medium text-gray-100 truncate">
-                            {inq.name}
-                          </div>
-                          <div className="text-xs text-gray-400 truncate">
-                            {inq.email}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Destination */}
-                    <td className="py-3 px-2">
-                      <div className="inline-flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-emerald-400" />
-                        <span className="text-gray-200">{inq.destination}</span>
-                      </div>
-                    </td>
-
-                    {/* Date */}
-                    <td className="py-3 px-2 text-gray-300">
-                      {new Date(inq.createdAt).toLocaleDateString()}
-                    </td>
-
-                    {/* Message snippet */}
-                    <td className="py-3 px-2 max-w-[360px]">
-                      <div className="text-gray-300 line-clamp-1">
-                        {inq.message}
-                      </div>
-                    </td>
-
-                    {/* Operation: Delete */}
-                    <td className="py-3 px-2 text-right">
-                      <ConfirmDelete
-                        title="Inquiry"
-                        onConfirm={() => deleteInquiry(inq._id)}
-                      />
-                    </td>
-                  </tr>
-                ))}
-
-                {dashboardData.recentInquiries.length === 0 && (
-                  <tr>
-                    <td className="py-6 text-center text-gray-400" colSpan={6}>
-                      No inquiries yet.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              {dashboardData.recentInquiries.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-muted-foreground text-xs">
+                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-400 opacity-60" />
+                    No recent inquiries found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Analytics & other sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Inquiries trend (bar) */}
-        <Card className={`${glass}`}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Inquiries Trend</CardTitle>
-          </CardHeader>
-          <CardContent className={`${subGlass} p-3`}>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={inquiriesByMonth}>
-                <XAxis dataKey="month" stroke="#9CA3AF" fontSize={12} />
-                <YAxis stroke="#9CA3AF" fontSize={12} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "#111827", border: "none" }}
-                />
-                <Bar dataKey="count" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {/* ── B2B & Popular Packages Double Row ───────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent B2B Requests */}
+        <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+                <Building2 className="w-4 h-4" />
+              </div>
+              <h3 className="text-base font-bold text-foreground">Recent B2B Partner Requests</h3>
+            </div>
+            <Link href="/b2b" className="text-xs font-semibold text-primary hover:underline">
+              View All
+            </Link>
+          </div>
 
-        {/* Recent Reviews (compact list) */}
-        <Card className={`${glass}`}>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-400" />
-              Recent Reviews
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {dashboardData.recentReviews.slice(0, 6).map((r) => (
-              <div key={r._id} className={`${subGlass} p-3`}>
+          <div className="space-y-3">
+            {dashboardData.recentB2BRequests.slice(0, 4).map((b2b) => (
+              <div
+                key={b2b._id}
+                className="p-4 rounded-2xl bg-muted/40 border border-border/40 hover:bg-muted/70 transition-colors space-y-1"
+              >
                 <div className="flex items-center justify-between">
-                  <div className="font-medium">{r.user?.name ?? "User"}</div>
-                  <div className="text-sm text-gray-400">{r.rating} ★</div>
+                  <span className="font-bold text-sm text-foreground">{b2b.companyName}</span>
+                  <span className="text-[11px] text-muted-foreground font-medium">
+                    {new Date(b2b.createdAt).toLocaleDateString()}
+                  </span>
                 </div>
-                {r.comment && (
-                  <div className="text-sm text-gray-300 line-clamp-2 mt-1">
-                    {r.comment}
-                  </div>
-                )}
-                <div className="text-xs text-gray-500 mt-1">
-                  {new Date(r.createdAt).toLocaleDateString()}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Contact: {b2b.contactName}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-semibold text-[10px]">
+                    {b2b.inquiryType}
+                  </span>
                 </div>
               </div>
             ))}
-            {dashboardData.recentReviews.length === 0 && (
-              <div className="text-sm text-gray-400">No reviews yet.</div>
+            {dashboardData.recentB2BRequests.length === 0 && (
+              <p className="text-xs text-muted-foreground py-6 text-center">
+                No B2B requests recorded yet.
+              </p>
             )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Popular Packages (table style, read-only) */}
-      <div className={`${glass} mt-6`}>
-        <div className="flex items-center justify-between p-5 pb-3">
-          <h2 className="text-lg font-semibold">Popular Packages</h2>
-          <div className="text-xs text-gray-400">
-            {dashboardData.popularPackages.length} items
           </div>
         </div>
 
-        <div className="px-3 pb-3">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-400">
-                  <th className="py-3 px-2">Rank</th>
-                  <th className="py-3 px-2">Title</th>
-                  <th className="py-3 px-2">Destination</th>
-                  <th className="py-3 px-2">Duration</th>
-                  <th className="py-3 px-2">Price</th>
-                  <th className="py-3 px-2">Reviews</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {dashboardData.popularPackages.slice(0, 6).map((p, idx) => (
-                  <tr
-                    key={p._id}
-                    className="hover:bg-white/5 transition-colors"
+        {/* Popular Packages */}
+        <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-border/40">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                <Package className="w-4 h-4" />
+              </div>
+              <h3 className="text-base font-bold text-foreground">Top Popular Packages</h3>
+            </div>
+            <Link href="/packages" className="text-xs font-semibold text-primary hover:underline">
+              View Catalog
+            </Link>
+          </div>
+
+          <div className="space-y-3">
+            {dashboardData.popularPackages.slice(0, 4).map((pkg) => (
+              <div
+                key={pkg._id}
+                className="p-3.5 rounded-2xl bg-muted/40 border border-border/40 flex items-center justify-between gap-3 hover:bg-muted/70 transition-colors"
+              >
+                <div className="space-y-0.5">
+                  <p className="font-bold text-xs sm:text-sm text-foreground line-clamp-1">{pkg.title}</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {pkg.location?.destination || pkg.location?.city} • {pkg.duration?.day}D/{pkg.duration?.night}N
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="font-extrabold text-sm text-foreground">
+                    ₹{Math.round(pkg.price).toLocaleString("en-IN")}
+                  </p>
+                  <Link
+                    href={`/packages/edit/${pkg._id}`}
+                    className="inline-flex items-center gap-1 text-[10px] text-primary font-semibold hover:underline"
                   >
-                    <td className="py-3 px-2 text-gray-300">#{idx + 1}</td>
-                    <td className="py-3 px-2 text-gray-100">{p.title}</td>
-                    <td className="py-3 px-2 text-gray-200">
-                      {p.location?.destination ||
-                        [p.location?.city, p.location?.state]
-                          .filter(Boolean)
-                          .join(", ")}
-                    </td>
-                    <td className="py-3 px-2 text-gray-300">
-                      {p.duration?.day ?? 0}d / {p.duration?.night ?? 0}n
-                    </td>
-                    <td className="py-3 px-2 text-gray-100">
-                      {typeof p.price === "number"
-                        ? `₹${p.price.toLocaleString()}`
-                        : "-"}
-                    </td>
-                    <td className="py-3 px-2 text-gray-300">
-                      {p.reviews?.length ?? 0}
-                    </td>
-                  </tr>
-                ))}
-                {dashboardData.popularPackages.length === 0 && (
-                  <tr>
-                    <td className="py-6 text-center text-gray-400" colSpan={6}>
-                      No packages to show.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                    Edit <Eye className="w-3 h-3" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+            {dashboardData.popularPackages.length === 0 && (
+              <p className="text-xs text-muted-foreground py-6 text-center">
+                No popular packages found.
+              </p>
+            )}
           </div>
-        </div>
-      </div>
-
-      {/* B2B Requests */}
-      <div className={`${glass} mt-6`}>
-        <div className="p-5 pb-3">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Send className="w-5 h-5 text-primary" /> Recent B2B Requests
-          </h2>
-        </div>
-        <div className="px-5 pb-5 grid gap-3 md:grid-cols-2">
-          {dashboardData.recentB2BRequests.slice(0, 6).map((b2b) => (
-            <div key={b2b._id} className={`${subGlass} p-4`}>
-              <div className="flex items-center justify-between">
-                <div className="font-medium">{b2b.companyName}</div>
-                <div className="text-xs text-gray-400">
-                  {new Date(b2b.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-              <div className="text-sm text-gray-300 mt-1">
-                {b2b.inquiryType}
-              </div>
-              <div className="text-xs text-gray-400">{b2b.contactName}</div>
-              {b2b.message && (
-                <div className="text-xs text-gray-400 mt-2 line-clamp-2">
-                  {b2b.message}
-                </div>
-              )}
-            </div>
-          ))}
-          {dashboardData.recentB2BRequests.length === 0 && (
-            <div className="text-sm text-gray-400 px-5 pb-5">
-              No B2B requests yet.
-            </div>
-          )}
         </div>
       </div>
     </div>

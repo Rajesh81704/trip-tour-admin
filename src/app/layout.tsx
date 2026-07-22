@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nature Vacation Admin Dashboard",
-  description: "Nature Vacation Admin Dashboard",
+  title: "TripToo Travels Admin Dashboard",
+  description: "TripToo Travels Admin Dashboard - Package Management",
 };
 
 export default function RootLayout({
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased dark`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         <ReduxStoreProvider>
           <AuthWrapper>

@@ -75,7 +75,7 @@ class ApiClient {
 
     async delete<T>(url: string): Promise<{ data: T; status: number }> {
         try {
-            const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
+            const proxyUrl = url.startsWith('/proxy/') || url.startsWith('/upload') ? url : `/proxy${url}`;
             const response: AxiosResponse<T> = await this.client.delete(proxyUrl);
             return { data: response.data, status: response.status };
         } catch (error) {

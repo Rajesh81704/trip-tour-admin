@@ -93,7 +93,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:static w-64 bg-background border-r flex flex-col justify-between h-full transition-transform duration-300 z-40",
+          "dark fixed lg:static w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col justify-between h-full transition-transform duration-300 z-40",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
@@ -145,7 +145,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
+      <main className="flex-1 overflow-auto p-4 lg:p-6 bg-muted/40">{children}</main>
     </div>
   );
 }
