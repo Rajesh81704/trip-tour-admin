@@ -188,7 +188,8 @@ const selectClassName =
   "w-full border border-input rounded-lg px-3 py-2 text-sm text-foreground bg-background focus:outline-none focus:ring-2 focus:ring-ring";
 interface PackageFormProps {
   initialData?: Package;
-  onSubmit: (data: FormData) => Promise<void>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onSubmit: (data: Record<string, any>) => Promise<void>;
 }
 
 export default function PackageForm({ initialData, onSubmit }: PackageFormProps) {
@@ -298,11 +299,16 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
     try {
       setIsSubmitting(true);
 
-      // ── 1. Upload package images to R2 ──────────────────────────────────
+      // ── 1. Upload package images ─────────────────────────────────────────
       let finalPkgImages = [...existingPkgImages];
       if (pkgImageFiles.length > 0) {
+        setUploadStatus(`Uploading package images (0/${pkgImageFiles.length})…`);
         toast.info(`Uploading ${pkgImageFiles.length} package image(s)…`);
-        const uploaded = await uploadFilesToR2(pkgImageFiles, "packages");
+        const uploaded = await uploadFilesToR2(
+          pkgImageFiles,
+          "packages",
+          (curr, total) => setUploadStatus(`Uploading package images (${curr}/${total})…`)
+        );
         const newImages = uploaded.map(({ key, publicUrl }) => ({ url: publicUrl, public_id: key }));
         finalPkgImages = [...finalPkgImages, ...newImages];
       }
@@ -311,13 +317,18 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
         return;
       }
 
-      // ── 2. Upload hotel images to R2 ────────────────────────────────────
+      // ── 2. Upload hotel images ───────────────────────────────────────────
       const updatedHotels = [...(values.hotels ?? [])];
       for (const [hiStr, files] of Object.entries(hotelImageFiles)) {
         const hi = Number(hiStr);
         if (!files.length) continue;
-        toast.info(`Uploading hotel ${hi + 1} images…`);
-        const uploaded = await uploadFilesToR2(files, "hotels");
+        setUploadStatus(`Uploading hotel ${hi + 1} images (0/${files.length})…`);
+        toast.info(`Uploading hotel ${hi + 1} image(s)…`);
+        const uploaded = await uploadFilesToR2(
+          files,
+          "hotels",
+          (curr, total) => setUploadStatus(`Uploading hotel ${hi + 1} images (${curr}/${total})…`)
+        );
         const newImgs = uploaded.map(({ key, publicUrl }) => ({ url: publicUrl, public_id: key }));
         updatedHotels[hi] = {
           ...updatedHotels[hi],
@@ -325,19 +336,26 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
         };
       }
 
-      // ── 3. Upload sightseeing images to R2 ──────────────────────────────
+      // ── 3. Upload sightseeing images ─────────────────────────────────────
       const updatedSightseeings = [...(values.sightseeings ?? [])];
       for (const [siStr, files] of Object.entries(sightseeingImageFiles)) {
         const si = Number(siStr);
         if (!files.length) continue;
-        toast.info(`Uploading sightseeing ${si + 1} images…`);
-        const uploaded = await uploadFilesToR2(files, "sightseeings");
+        setUploadStatus(`Uploading sightseeing ${si + 1} images (0/${files.length})…`);
+        toast.info(`Uploading sightseeing ${si + 1} image(s)…`);
+        const uploaded = await uploadFilesToR2(
+          files,
+          "sightseeings",
+          (curr, total) => setUploadStatus(`Uploading sightseeing ${si + 1} images (${curr}/${total})…`)
+        );
         const newImgs = uploaded.map(({ key, publicUrl }) => ({ url: publicUrl, public_id: key }));
         updatedSightseeings[si] = {
           ...updatedSightseeings[si],
           images: [...(updatedSightseeings[si]?.images ?? []), ...newImgs],
         };
       }
+
+      setUploadStatus("Saving package details…");
 
       // ── 4. Send pure JSON to backend (no files) ──────────────────────────
       const payload = {
@@ -359,14 +377,8 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
         images:       finalPkgImages,
       };
 
-      // Convert to FormData so existing onSubmit signature is preserved
-      // But backend will receive all data as JSON strings
-      const fd = new FormData();
-      Object.entries(payload).forEach(([k, v]) => {
-        fd.append(k, typeof v === "object" ? JSON.stringify(v) : String(v));
-      });
-
-      await onSubmit(fd);
+      // Direct client UI upload to R2 completed — pass clean JSON payload to onSubmit
+      await onSubmit(payload);
 
       if (!initialData) {
         toast.success("Package created successfully");
@@ -724,7 +736,7 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                     <span className="text-sm font-bold text-blue-700">
                       Flight {fi + 1} {fl.airline ? `— ${fl.airline}` : ""}
                     </span>
-                    <button type="button" onClick={() => setValue("flights", flights.filter((_, i) => i !== fi))}
+                    <button type="button" onClick={() => setValue("flights", flights.filter((_, i) => i !== fi), { shouldDirty: true, shouldTouch: true })}
                       className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -743,31 +755,49 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                       ["Arr. Time", "arrivalTime", "time", null],
                       ["Duration", "duration", "text", null, "e.g. 9h 20m"],
                       ["Price (₹)", "price", "number", null],
-                    ] as [string, string, string, string[] | null, string?][]).map(([label, key, type, opts, ph]) => (
-                      <div key={key} className={key === "airline" || key === "departureCity" || key === "arrivalCity" ? "col-span-2 sm:col-span-1" : ""}>
-                        <FieldLabel>{label}</FieldLabel>
-                        {type === "select" ? (
-                          <select value={(fl as Record<string, unknown>)[key] as string}
-                            onChange={(e) => { const upd = [...flights]; (upd[fi] as Record<string, unknown>)[key] = e.target.value; setValue("flights", upd); }}
-                            className={selectClassName}>
-                            {opts!.map((o) => { const [v, l] = o.split(":"); return <option key={v} value={v}>{l}</option>; })}
-                          </select>
-                        ) : (
-                          <Input type={type} placeholder={ph}
-                            value={(fl as Record<string, unknown>)[key] as string}
-                            onChange={(e) => {
-                              const upd = [...flights];
-                              (upd[fi] as Record<string, unknown>)[key] = type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
-                              setValue("flights", upd);
-                            }} />
-                        )}
-                      </div>
-                    ))}
+                    ] as [string, string, string, string[] | null, string?][]).map(([label, key, type, opts, ph]) => {
+                      const rawVal = (fl as Record<string, unknown>)[key];
+                      const displayVal = rawVal !== undefined && rawVal !== null ? String(rawVal) : (type === "select" ? (opts![0]?.split(":")[0] ?? "") : "");
+                      return (
+                        <div key={key} className={key === "airline" || key === "departureCity" || key === "arrivalCity" ? "col-span-2 sm:col-span-1" : ""}>
+                          <FieldLabel>{label}</FieldLabel>
+                          {type === "select" ? (
+                            <select
+                              value={displayVal}
+                              onChange={(e) => {
+                                const upd = [...flights];
+                                upd[fi] = { ...upd[fi], [key]: e.target.value };
+                                setValue("flights", upd, { shouldDirty: true, shouldTouch: true });
+                              }}
+                              className={selectClassName}>
+                              {opts!.map((o) => { const [v, l] = o.split(":"); return <option key={v} value={v}>{l}</option>; })}
+                            </select>
+                          ) : (
+                            <Input
+                              type={type}
+                              placeholder={ph}
+                              value={displayVal}
+                              onChange={(e) => {
+                                const upd = [...flights];
+                                const inputVal = e.target.value;
+                                const parsedVal = type === "number" ? (inputVal === "" ? "" : parseFloat(inputVal) || 0) : inputVal;
+                                upd[fi] = { ...upd[fi], [key]: parsedVal };
+                                setValue("flights", upd, { shouldDirty: true, shouldTouch: true });
+                              }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                     <div className="col-span-2 sm:col-span-3">
                       <FieldLabel>Notes / Description</FieldLabel>
                       <Textarea rows={2} placeholder="Optional notes about this flight"
                         value={fl.description ?? ""}
-                        onChange={(e) => { const upd = [...flights]; upd[fi].description = e.target.value; setValue("flights", upd); }} />
+                        onChange={(e) => {
+                          const upd = [...flights];
+                          upd[fi] = { ...upd[fi], description: e.target.value };
+                          setValue("flights", upd, { shouldDirty: true, shouldTouch: true });
+                        }} />
                     </div>
                   </div>
                 </div>
@@ -788,7 +818,7 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                   location: "", hotelName: "", nights: 1, roomType: "",
                   amenities: [], price: 0, starRating: 3, description: "", images: [],
                 };
-                setValue("hotels", [...hotels, h]);
+                setValue("hotels", [...hotels, h], { shouldDirty: true, shouldTouch: true });
               }} className="flex items-center gap-2 text-sm font-semibold text-green-700 border border-green-200 bg-green-50 rounded-lg px-4 py-2 hover:bg-green-100 transition-colors">
                 <Plus className="w-4 h-4" /> Add Hotel
               </button>
@@ -799,7 +829,7 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                     <span className="text-sm font-bold text-green-700">
                       Hotel {hi + 1} {ht.hotelName ? `— ${ht.hotelName}` : ""}
                     </span>
-                    <button type="button" onClick={() => setValue("hotels", hotels.filter((_, i) => i !== hi))}
+                    <button type="button" onClick={() => setValue("hotels", hotels.filter((_, i) => i !== hi), { shouldDirty: true, shouldTouch: true })}
                       className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -811,22 +841,35 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                       ["Price / Night (₹) *", "price", "number", ""],
                       ["Check-in Date", "checkInDate", "date", ""],
                       ["Check-out Date", "checkOutDate", "date", ""],
-                    ] as [string, string, string, string][]).map(([label, key, type, ph]) => (
-                      <div key={key}>
-                        <FieldLabel>{label}</FieldLabel>
-                        <Input type={type} placeholder={ph}
-                          value={(ht as Record<string, unknown>)[key] as string ?? ""}
-                          onChange={(e) => {
-                            const upd = [...hotels];
-                            (upd[hi] as Record<string, unknown>)[key] = type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
-                            setValue("hotels", upd);
-                          }} />
-                      </div>
-                    ))}
+                    ] as [string, string, string, string][]).map(([label, key, type, ph]) => {
+                      const rawVal = (ht as Record<string, unknown>)[key];
+                      const displayVal = rawVal !== undefined && rawVal !== null ? String(rawVal) : "";
+                      return (
+                        <div key={key}>
+                          <FieldLabel>{label}</FieldLabel>
+                          <Input
+                            type={type}
+                            placeholder={ph}
+                            value={displayVal}
+                            onChange={(e) => {
+                              const upd = [...hotels];
+                              const inputVal = e.target.value;
+                              const parsedVal = type === "number" ? (inputVal === "" ? "" : parseFloat(inputVal) || 0) : inputVal;
+                              upd[hi] = { ...upd[hi], [key]: parsedVal };
+                              setValue("hotels", upd, { shouldDirty: true, shouldTouch: true });
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
                     <div>
                       <FieldLabel>Star Rating</FieldLabel>
                       <select value={ht.starRating ?? 3}
-                        onChange={(e) => { const upd = [...hotels]; upd[hi].starRating = parseInt(e.target.value); setValue("hotels", upd); }}
+                        onChange={(e) => {
+                          const upd = [...hotels];
+                          upd[hi] = { ...upd[hi], starRating: parseInt(e.target.value) || 3 };
+                          setValue("hotels", upd, { shouldDirty: true, shouldTouch: true });
+                        }}
                         className={selectClassName}>
                         {[1,2,3,4,5].map((n) => <option key={n} value={n}>{"★".repeat(n)} {n} Star{n>1?"s":""}</option>)}
                       </select>
@@ -837,15 +880,19 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                         value={ht.amenities?.join(", ") ?? ""}
                         onChange={(e) => {
                           const upd = [...hotels];
-                          upd[hi].amenities = e.target.value.split(",").map((a) => a.trim()).filter(Boolean);
-                          setValue("hotels", upd);
+                          upd[hi] = { ...upd[hi], amenities: e.target.value.split(",").map((a) => a.trim()).filter(Boolean) };
+                          setValue("hotels", upd, { shouldDirty: true, shouldTouch: true });
                         }} />
                     </div>
                     <div className="col-span-2 sm:col-span-3">
                       <FieldLabel>Description</FieldLabel>
                       <Textarea rows={2} placeholder="Optional hotel details"
                         value={ht.description ?? ""}
-                        onChange={(e) => { const upd = [...hotels]; upd[hi].description = e.target.value; setValue("hotels", upd); }} />
+                        onChange={(e) => {
+                          const upd = [...hotels];
+                          upd[hi] = { ...upd[hi], description: e.target.value };
+                          setValue("hotels", upd, { shouldDirty: true, shouldTouch: true });
+                        }} />
                     </div>
                     <div className="col-span-2 sm:col-span-3">
                       <MultiImageUpload
@@ -884,7 +931,7 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
             <div className="p-5 space-y-4">
               <button type="button" onClick={() => {
                 const s: SightseeingOption = { name: "", description: "", location: "", duration: "", images: [] };
-                setValue("sightseeings", [...sightseeings, s]);
+                setValue("sightseeings", [...sightseeings, s], { shouldDirty: true, shouldTouch: true });
               }} className="flex items-center gap-2 text-sm font-semibold text-purple-700 border border-purple-200 bg-purple-50 rounded-lg px-4 py-2 hover:bg-purple-100 transition-colors">
                 <Plus className="w-4 h-4" /> Add Sightseeing
               </button>
@@ -895,33 +942,33 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                     <span className="text-sm font-bold text-purple-700">
                       {si + 1}. {sg.name || "New Sightseeing"}
                     </span>
-                    <button type="button" onClick={() => setValue("sightseeings", sightseeings.filter((_, i) => i !== si))}
+                    <button type="button" onClick={() => setValue("sightseeings", sightseeings.filter((_, i) => i !== si), { shouldDirty: true, shouldTouch: true })}
                       className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="sm:col-span-2">
                       <FieldLabel>Sightseeing Name *</FieldLabel>
                       <Input placeholder="e.g. Halong Bay Cruise"
-                        value={sg.name}
-                        onChange={(e) => { const upd = [...sightseeings]; upd[si] = { ...upd[si], name: e.target.value }; setValue("sightseeings", upd); }} />
+                        value={sg.name ?? ""}
+                        onChange={(e) => { const upd = [...sightseeings]; upd[si] = { ...upd[si], name: e.target.value }; setValue("sightseeings", upd, { shouldDirty: true, shouldTouch: true }); }} />
                     </div>
                     <div>
                       <FieldLabel>Location</FieldLabel>
                       <Input placeholder="e.g. Quảng Ninh, Vietnam"
                         value={sg.location ?? ""}
-                        onChange={(e) => { const upd = [...sightseeings]; upd[si] = { ...upd[si], location: e.target.value }; setValue("sightseeings", upd); }} />
+                        onChange={(e) => { const upd = [...sightseeings]; upd[si] = { ...upd[si], location: e.target.value }; setValue("sightseeings", upd, { shouldDirty: true, shouldTouch: true }); }} />
                     </div>
                     <div>
                       <FieldLabel>Duration</FieldLabel>
                       <Input placeholder="e.g. Half Day / 3 Hours"
                         value={sg.duration ?? ""}
-                        onChange={(e) => { const upd = [...sightseeings]; upd[si] = { ...upd[si], duration: e.target.value }; setValue("sightseeings", upd); }} />
+                        onChange={(e) => { const upd = [...sightseeings]; upd[si] = { ...upd[si], duration: e.target.value }; setValue("sightseeings", upd, { shouldDirty: true, shouldTouch: true }); }} />
                     </div>
                     <div className="sm:col-span-2">
                       <FieldLabel>Description</FieldLabel>
                       <Textarea rows={2} placeholder="Tell travellers about this sightseeing..."
                         value={sg.description ?? ""}
-                        onChange={(e) => { const upd = [...sightseeings]; upd[si] = { ...upd[si], description: e.target.value }; setValue("sightseeings", upd); }} />
+                        onChange={(e) => { const upd = [...sightseeings]; upd[si] = { ...upd[si], description: e.target.value }; setValue("sightseeings", upd, { shouldDirty: true, shouldTouch: true }); }} />
                     </div>
                     <div className="sm:col-span-2">
                       <MultiImageUpload

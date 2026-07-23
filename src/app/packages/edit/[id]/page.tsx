@@ -26,20 +26,12 @@ export default function EditPackagePage() {
     fetchPackage();
   }, [id, router]);
 
-  // The form sends a FormData with JSON-serialised fields (images already uploaded to R2).
-  // Re-parse into a plain object and PUT it as JSON.
-  const handleSubmit = async (data: FormData) => {
+  // Images are uploaded directly to Cloudflare R2 from the client-side UI.
+  // The form sends the resulting image URLs in a clean JSON payload.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSubmit = async (data: Record<string, any>) => {
     try {
-      const body: Record<string, unknown> = {};
-      data.forEach((value, key) => {
-        if (typeof value === "string") {
-          try { body[key] = JSON.parse(value); } catch { body[key] = value; }
-        } else {
-          body[key] = value;
-        }
-      });
-
-      const response = await api.put<{ success: boolean }>(`/packages/${id}`, body);
+      const response = await api.put<{ success: boolean }>(`/packages/${id}`, data);
       if (response.status !== 200) throw new Error("Failed to update package");
 
       toast.success("Package updated successfully");
@@ -47,7 +39,7 @@ export default function EditPackagePage() {
     } catch (error) {
       console.error(error);
       toast.error("Error updating package");
-      throw error; // re-throw so the form's catch also fires
+      throw error;
     }
   };
 
@@ -67,7 +59,7 @@ export default function EditPackagePage() {
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold text-foreground">Edit Package</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Changes are saved to the server. New images upload directly to Cloudflare R2.
+          Changes are saved to the server. New images are uploaded directly.
         </p>
       </div>
       <PackageForm initialData={packageData} onSubmit={handleSubmit} />

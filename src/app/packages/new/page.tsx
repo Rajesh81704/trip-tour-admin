@@ -3,19 +3,11 @@ import PackageForm from "@/components/forms/package";
 import api from "@/lib/api";
 
 export default function NewPackagePage() {
-  // The form now sends a FormData with JSON-serialised fields (no raw files).
-  // We re-parse it into a plain object and POST it as JSON.
-  const handleSubmit = async (data: FormData) => {
-    const body: Record<string, unknown> = {};
-    data.forEach((value, key) => {
-      // Attempt to parse JSON strings back into objects/arrays
-      if (typeof value === "string") {
-        try { body[key] = JSON.parse(value); } catch { body[key] = value; }
-      } else {
-        body[key] = value;
-      }
-    });
-    await api.post("/packages", body);
+  // Images are uploaded directly to Cloudflare R2 from the client-side UI.
+  // The form sends the resulting image URLs in a clean JSON payload.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSubmit = async (data: Record<string, any>) => {
+    await api.post("/packages", data);
   };
 
   return (
@@ -24,7 +16,7 @@ export default function NewPackagePage() {
         <h1 className="text-2xl font-extrabold text-foreground">Create New Package</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Fill in the sections below. Itinerary days auto-populate when you set the duration.
-          Images are uploaded directly to Cloudflare R2.
+          Images are uploaded directly.
         </p>
       </div>
       <PackageForm onSubmit={handleSubmit} />
