@@ -15,6 +15,8 @@ import {
   Send,
   Settings,
   X,
+  FileCheck,
+  Globe,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -36,6 +38,16 @@ const sidebarLinks = [
     name: "Packages",
     href: "/packages",
     icon: Package,
+  },
+  {
+    name: "Visa Requests",
+    href: "/visa-requests",
+    icon: FileCheck,
+  },
+  {
+    name: "Visa Packages",
+    href: "/visa-packages",
+    icon: Globe,
   },
   {
     name: "B2B Requests",
@@ -98,9 +110,9 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
         )}
       >
         <div>
-          <div className="p-6 font-bold text-xl flex items-center gap-2">
-            <Home className="w-6 h-6" />
-            Admin Panel
+          <div className="p-6 font-bold text-xl flex items-center gap-2 text-white">
+            <Home className="w-6 h-6 text-amber-400" />
+            Triptoo Admin
           </div>
           <nav className="mt-4 flex flex-col gap-1">
             {sidebarLinks.map((link) => {

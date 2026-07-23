@@ -86,7 +86,7 @@ const packageSchema = z.object({
     title: z.string().min(1, "Title required"),
     description: z.string().min(1, "Description required"),
     hotelName: z.string().optional(),
-    city: z.string().optional(),
+    city: z.string().min(1, "City is mandatory"),
     _id: z.string().optional(),
   })).min(1, "At least one day"),
   inclusions: z.array(z.string().min(1)).min(1, "At least one inclusion"),
@@ -260,10 +260,11 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
   useEffect(() => {
     const days = Math.max(1, durationDay || 1);
     const current = getValues("itinerary");
+    const defaultCity = getValues("location.city") || "";
     if (current.length === days) return;
     if (days > current.length) {
       const extras = Array.from({ length: days - current.length }, (_, i) => ({
-        day: current.length + i + 1, title: "", description: "", hotelName: "", city: "",
+        day: current.length + i + 1, title: "", description: "", hotelName: "", city: defaultCity,
       }));
       setValue("itinerary", [...current, ...extras]);
     } else {

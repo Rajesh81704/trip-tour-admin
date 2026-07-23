@@ -13,7 +13,7 @@ export async function GET(
   try {
     const path = (await params).path.join('/');
     const searchParams = request.nextUrl.searchParams.toString();
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
     const targetUrl = `${backendUrl}/${path}${searchParams ? `?${searchParams}` : ''}`;
 
     const cookie = request.headers.get('cookie') || '';
@@ -44,7 +44,7 @@ export async function POST(
   try {
     const path = (await params).path.join('/');
     const contentType = request.headers.get('content-type') || '';
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
     const targetUrl = `${backendUrl}/${path}`;
     const cookie = request.headers.get('cookie') || '';
 
@@ -97,7 +97,7 @@ export async function PUT(
   try {
     const path = (await params).path.join('/');
     const contentType = request.headers.get('content-type') || '';
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
     const targetUrl = `${backendUrl}/${path}`;
     const cookie = request.headers.get('cookie') || '';
 
@@ -135,7 +135,7 @@ export async function DELETE(
 ) {
   try {
     const path = (await params).path.join('/');
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
     const targetUrl = `${backendUrl}/${path}`;
     const cookie = request.headers.get('cookie') || '';
 
@@ -165,7 +165,7 @@ export async function PATCH(
   try {
     const path = (await params).path.join('/');
     const contentType = request.headers.get('content-type') || '';
-    const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
     const targetUrl = `${backendUrl}/${path}`;
     const cookie = request.headers.get('cookie') || '';
 

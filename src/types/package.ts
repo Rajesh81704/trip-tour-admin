@@ -91,6 +91,8 @@ export interface Package {
 }
 
 export const PACKAGE_CATEGORIES = [
+    "Visa Packages",
+    "Visa Services",
     "Adventure",
     "Cultural",
     "Luxury",

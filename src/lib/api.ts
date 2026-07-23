@@ -26,7 +26,7 @@ class ApiClient {
         return ApiClient.instance;
     }
 
-    async get<T>(url: string, params?: Record<string, string>): Promise<{ data: T; status: number }> {
+    async get<T = any>(url: string, params?: Record<string, string>): Promise<{ data: T; status: number }> {
         try {
             const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
             if (process.env.NODE_ENV === 'development') {
@@ -40,7 +40,7 @@ class ApiClient {
         }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async post<T>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    async post<T = any>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const proxyUrl = url.startsWith('/proxy/') || url.startsWith('/auth/') ? url : `/proxy${url}`;
             if (process.env.NODE_ENV === 'development') {
@@ -57,7 +57,7 @@ class ApiClient {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async put<T>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    async put<T = any>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
             if (process.env.NODE_ENV === 'development') {
@@ -73,7 +73,7 @@ class ApiClient {
         }
     }
 
-    async delete<T>(url: string): Promise<{ data: T; status: number }> {
+    async delete<T = any>(url: string): Promise<{ data: T; status: number }> {
         try {
             const proxyUrl = url.startsWith('/proxy/') || url.startsWith('/upload') ? url : `/proxy${url}`;
             const response: AxiosResponse<T> = await this.client.delete(proxyUrl);
@@ -85,7 +85,7 @@ class ApiClient {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async patch<T>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
+    async patch<T = any>(url: string, data: Record<string, any> | FormData, isFormData: boolean = false): Promise<{ data: T; status: number }> {
         try {
             const proxyUrl = url.startsWith('/proxy/') ? url : `/proxy${url}`;
             if (process.env.NODE_ENV === 'development') {
