@@ -5,9 +5,15 @@ import api from "@/lib/api";
 export default function NewPackagePage() {
   // Images are uploaded directly to Cloudflare R2 from the client-side UI.
   // The form sends the resulting image URLs in a clean JSON payload.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSubmit = async (data: Record<string, any>) => {
-    await api.post("/packages", data);
+    try {
+      await api.post("/packages", data);
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
+      const msg = axiosError?.response?.data?.message || axiosError?.message || "Failed to create package on server";
+      toast.error(msg);
+      throw err;
+    }
   };
 
   return (

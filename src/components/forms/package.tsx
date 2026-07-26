@@ -386,9 +386,14 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
       } else {
         toast.success("Package updated successfully");
       }
-    } catch (err) {
-      console.error(err);
-      toast.error("Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      console.error("Error saving package:", err);
+      const axiosError = err as { response?: { data?: { message?: string } }; message?: string };
+      const errorMessage =
+        axiosError?.response?.data?.message ||
+        axiosError?.message ||
+        "Something went wrong while saving the package. Please check required fields and uploaded images.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
