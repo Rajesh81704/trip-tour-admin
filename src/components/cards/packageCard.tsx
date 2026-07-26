@@ -14,10 +14,12 @@ import {
   Camera,
   Sparkles,
   Tag,
+  MessageSquare,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ConfirmDelete from "./confirmDelete";
+import PackageReviewsModal from "../modals/PackageReviewsModal";
 
 interface PackageCardProps {
   pkg: Package;
@@ -25,9 +27,20 @@ interface PackageCardProps {
 }
 
 function getAverageRating(reviews: Package["reviews"]) {
-  if (!reviews || reviews.length === 0) return null;
-  const sum = reviews.reduce((acc, r) => acc + r.rating, 0);
-  return (sum / reviews.length).toFixed(1);
+  if (!reviews || !Array.isArray(reviews) || reviews.length === 0) return null;
+  let totalRating = 0;
+  let count = 0;
+  for (const r of reviews) {
+    if (typeof r === "number") {
+      totalRating += r;
+      count++;
+    } else if (r && typeof r === "object" && typeof r.rating === "number") {
+      totalRating += r.rating;
+      count++;
+    }
+  }
+  if (count === 0) return null;
+  return (totalRating / count).toFixed(1);
 }
 
 function formatPrice(amount: number): string {
@@ -37,6 +50,7 @@ function formatPrice(amount: number): string {
 export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(true);
+  const [showReviewsModal, setShowReviewsModal] = useState(false);
   const [expandedSection, setExpandedSection] = useState<"flights" | "hotels" | "sightseeings" | null>(null);
 
   const handleDelete = async () => {
@@ -60,7 +74,10 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
   return (
     <div className="group relative bg-card text-card-foreground border border-border/60 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full">
       {/* ── Image & Top Badges ────────────────────────────────────────────── */}
-      <div className="aspect-[16/10] w-full overflow-hidden relative bg-muted">
+      <div
+        className="aspect-[16/10] w-full overflow-hidden relative bg-muted cursor-pointer"
+        onClick={() => router.push(`/packages/${pkg._id}`)}
+      >
         <Image
           src={mainImageUrl}
           alt={pkg.title}
@@ -103,7 +120,15 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
             {pkg.duration.day} Days / {pkg.duration.night} Nights
           </span>
 
-          <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg text-xs font-bold text-yellow-400">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/packages/${pkg._id}`);
+            }}
+            className="flex items-center gap-1 bg-black/60 hover:bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-bold text-yellow-400 border border-yellow-400/30 transition-all hover:scale-105 cursor-pointer"
+            title="Click to view all reviews and ratings"
+          >
             <Star className="w-3.5 h-3.5 fill-yellow-400" />
             <span>{rating ?? "New"}</span>
             {pkg.reviews?.length > 0 && (
@@ -111,7 +136,7 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
                 ({pkg.reviews.length})
               </span>
             )}
-          </div>
+          </button>
         </div>
       </div>
 
@@ -119,7 +144,10 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
       <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
         <div>
           {/* Title */}
-          <h3 className="text-lg font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors tracking-tight">
+          <h3
+            className="text-lg font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors tracking-tight cursor-pointer"
+            onClick={() => router.push(`/packages/${pkg._id}`)}
+          >
             {pkg.title}
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5 font-medium line-clamp-1">
@@ -257,14 +285,22 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
             <span className="text-[11px] text-muted-foreground font-medium">per person</span>
           </div>
 
-          {/* Action Buttons: Edit and Delete */}
+          {/* Action Buttons: Reviews, Edit, and Delete */}
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="cursor-pointer font-semibold rounded-xl text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/10 h-9 text-xs transition-all shadow-xs gap-1.5"
+              onClick={() => router.push(`/packages/${pkg._id}`)}
+            >
+              <MessageSquare className="w-3.5 h-3.5" /> Reviews
+            </Button>
             <Button
               type="button"
               className="flex-1 cursor-pointer font-semibold rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 h-9 text-xs transition-all shadow-xs gap-1.5"
               onClick={() => router.push(`/packages/edit/${pkg._id}`)}
             >
-              <Pencil className="w-3.5 h-3.5" /> Edit Package
+              <Pencil className="w-3.5 h-3.5" /> Edit
             </Button>
             <ConfirmDelete
               title="Package"
@@ -274,6 +310,14 @@ export default function PackageCard({ pkg, onDelete }: PackageCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Package Reviews Modal */}
+      <PackageReviewsModal
+        packageId={pkg._id}
+        packageTitle={pkg.title}
+        isOpen={showReviewsModal}
+        onClose={() => setShowReviewsModal(false)}
+      />
     </div>
   );
 }
