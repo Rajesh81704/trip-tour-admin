@@ -174,7 +174,7 @@ export default function PresetModal({
             <div className="py-12 text-center text-muted-foreground">Loading presets...</div>
           ) : presets.length === 0 ? (
             <div className="py-12 text-center space-y-2">
-              <Building2 className="w-10 h-10 mx-auto text-muted-foreground/50" />
+              <Bookmark className="w-10 h-10 mx-auto text-muted-foreground/50" />
               <p className="text-muted-foreground font-medium">No presets found matching destination.</p>
               <p className="text-xs text-muted-foreground">
                 Try searching for a different destination or create new presets from the Destination Presets admin tab.

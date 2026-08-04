@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import {
   Plus, Trash2, Hotel, Camera, Clock, MapPin, Star,
-  Search, Sparkles, Building2, Upload, X, Check, Edit2, Layers
+  Search, Sparkles, Building2, Upload, X, Check, Edit2, Layers, Bookmark
 } from "lucide-react";
 import Image from "next/image";
 import ConfirmDelete from "@/components/cards/confirmDelete";
@@ -394,7 +394,7 @@ export default function PresetsPage() {
         <div className="py-20 text-center text-muted-foreground">Loading presets...</div>
       ) : presets.length === 0 ? (
         <div className="py-20 text-center bg-card rounded-xl border border-border space-y-3">
-          <Building2 className="w-12 h-12 mx-auto text-muted-foreground/40" />
+          <Bookmark className="w-12 h-12 mx-auto text-muted-foreground/40" />
           <h3 className="text-lg font-semibold text-foreground">No Presets Found</h3>
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
             No presets match your selected destination or category filter. Click "Add New Preset" to create one.
@@ -587,9 +587,12 @@ export default function PresetsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="bg-background border border-border rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
-              <h2 className="font-semibold text-lg text-foreground">
-                {editingPreset ? "Edit Destination Preset" : "Create New Destination Preset"}
-              </h2>
+              <div className="flex items-center gap-2">
+                <Bookmark className="w-5 h-5 text-primary" />
+                <h2 className="font-semibold text-lg text-foreground">
+                  {editingPreset ? "Edit Destination Preset" : "Create New Destination Preset"}
+                </h2>
+              </div>
               <Button variant="ghost" size="icon" onClick={() => setIsCreateModalOpen(false)} className="rounded-full">
                 <X className="w-5 h-5" />
               </Button>
