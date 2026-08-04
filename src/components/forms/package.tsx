@@ -10,7 +10,7 @@ import Image from "next/image";
 import {
   Plus, X, Upload, Plane, Hotel, Camera,
   ChevronDown, ChevronUp, MapPin, Clock,
-  Star, Utensils, Eye, BedDouble, Calculator, Sparkles, RefreshCw,
+  Star, Utensils, Eye, BedDouble, Calculator, Sparkles, RefreshCw, Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -695,7 +695,7 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                   setPresetModalType("itinerary");
                   setPresetModalOpen(true);
                 }} className="flex items-center gap-2 text-xs font-semibold text-amber-700 border border-amber-200 bg-amber-50 rounded-lg px-3 py-1.5 hover:bg-amber-100 transition-colors">
-                  <Sparkles className="w-3.5 h-3.5" /> Import Itinerary from Presets
+                  <Bookmark className="w-3.5 h-3.5" /> Import Itinerary from Presets
                 </button>
               </div>
               <div className="space-y-4">
@@ -910,7 +910,7 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                   setPresetModalType("hotel");
                   setPresetModalOpen(true);
                 }} className="flex items-center gap-2 text-sm font-semibold text-amber-700 border border-amber-200 bg-amber-50 rounded-lg px-4 py-2 hover:bg-amber-100 transition-colors">
-                  <Sparkles className="w-4 h-4" /> Import from Presets
+                  <Bookmark className="w-4 h-4" /> Import from Presets
                 </button>
               </div>
 
@@ -1031,7 +1031,7 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                   setPresetModalType("sightseeing");
                   setPresetModalOpen(true);
                 }} className="flex items-center gap-2 text-sm font-semibold text-amber-700 border border-amber-200 bg-amber-50 rounded-lg px-4 py-2 hover:bg-amber-100 transition-colors">
-                  <Sparkles className="w-4 h-4" /> Import from Presets
+                  <Bookmark className="w-4 h-4" /> Import from Presets
                 </button>
               </div>
 

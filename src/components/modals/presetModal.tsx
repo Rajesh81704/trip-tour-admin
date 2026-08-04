@@ -5,7 +5,7 @@ import api from "@/lib/api";
 import { Preset, PresetType, PresetHotelData, PresetSightseeingData, PresetItineraryData } from "@/types/preset";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Hotel, Camera, MapPin, Star, Clock, Check, X, Sparkles, Building2 } from "lucide-react";
+import { Search, Hotel, Camera, MapPin, Star, Clock, Check, X, Bookmark, Building2 } from "lucide-react";
 import Image from "next/image";
 
 interface PresetModalProps {
@@ -106,7 +106,7 @@ export default function PresetModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/30">
           <div className="flex items-center gap-2 font-semibold text-lg">
-            <Sparkles className="w-5 h-5 text-amber-500" />
+            <Bookmark className="w-5 h-5 text-amber-500" />
             <span>{getTitle()}</span>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
