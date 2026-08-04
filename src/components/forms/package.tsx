@@ -18,6 +18,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Package, FlightOption, HotelOption, SightseeingOption, PACKAGE_CATEGORIES } from "@/types/package";
 import { uploadFilesToR2 } from "@/lib/r2-upload";
+import PresetModal from "@/components/modals/presetModal";
+import { Preset, PresetType, PresetHotelData, PresetSightseeingData, PresetItineraryData } from "@/types/preset";
 
 // ─── Zod schemas ──────────────────────────────────────────────────────────────
 const flightSchema = z.object({
@@ -47,7 +49,7 @@ const hotelSchema = z.object({
   roomType: z.string().min(1, "Required"),
   amenities: z.array(z.string()).optional(),
   price: z.number().min(0),
-  starRating: z.number().min(1).max(5).optional().nullable(),
+  starRating: z.number().min(1).max(7).optional().nullable(),
   checkInDate: z.string().optional(),
   checkOutDate: z.string().optional(),
   description: z.string().optional(),
@@ -205,6 +207,74 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
   });
   const toggle = (s: keyof typeof openSections) =>
     setOpenSections((p) => ({ ...p, [s]: !p[s] }));
+
+  // ── Preset Modal State ───────────────────────────────────────────────────
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
+  const [presetModalType, setPresetModalType] = useState<PresetType>("hotel");
+
+  const handlePresetImport = (selectedPresets: Preset[]) => {
+    if (presetModalType === "hotel") {
+      const newHotels: HotelOption[] = selectedPresets.map((p) => {
+        const h = p.data as PresetHotelData;
+        return {
+          hotelName: h.hotelName || "",
+          location: h.location || p.destination || "",
+          starRating: h.starRating || 3,
+          roomType: h.roomType || "",
+          amenities: h.amenities || [],
+          price: h.price || 0,
+          description: h.description || "",
+          images: h.images || [],
+          nights: 1,
+        };
+      });
+      const current = getValues("hotels") || [];
+      setValue("hotels", [...current, ...newHotels], { shouldDirty: true, shouldTouch: true });
+      setOpenSections((prev) => ({ ...prev, hotels: true }));
+      toast.success(`Imported ${newHotels.length} hotel(s) from presets`);
+    } else if (presetModalType === "sightseeing") {
+      const newSightseeing: SightseeingOption[] = selectedPresets.map((p) => {
+        const s = p.data as PresetSightseeingData;
+        return {
+          name: s.name || "",
+          description: s.description || "",
+          location: s.location || p.destination || "",
+          duration: s.duration || "",
+          images: s.images || [],
+        };
+      });
+      const current = getValues("sightseeings") || [];
+      setValue("sightseeings", [...current, ...newSightseeing], { shouldDirty: true, shouldTouch: true });
+      setOpenSections((prev) => ({ ...prev, sightseeings: true }));
+      toast.success(`Imported ${newSightseeing.length} sightseeing item(s) from presets`);
+    } else if (presetModalType === "itinerary") {
+      const currentItinerary = [...(getValues("itinerary") || [])];
+      selectedPresets.forEach((p) => {
+        const iData = p.data as PresetItineraryData;
+        const emptyIndex = currentItinerary.findIndex((day) => !day.title && !day.description);
+        if (emptyIndex !== -1) {
+          currentItinerary[emptyIndex] = {
+            ...currentItinerary[emptyIndex],
+            title: iData.title || currentItinerary[emptyIndex].title,
+            description: iData.description || currentItinerary[emptyIndex].description,
+            hotelName: iData.hotelName || currentItinerary[emptyIndex].hotelName,
+            city: iData.city || p.destination || currentItinerary[emptyIndex].city,
+          };
+        } else {
+          currentItinerary.push({
+            day: currentItinerary.length + 1,
+            title: iData.title || "",
+            description: iData.description || "",
+            hotelName: iData.hotelName || "",
+            city: iData.city || p.destination || "",
+          });
+        }
+      });
+      setValue("itinerary", currentItinerary, { shouldDirty: true, shouldTouch: true });
+      setOpenSections((prev) => ({ ...prev, itinerary: true }));
+      toast.success(`Imported ${selectedPresets.length} itinerary day(s) from presets`);
+    }
+  };
 
   // ── Package images ────────────────────────────────────────────────────────
   const [pkgImageFiles, setPkgImageFiles] = useState<File[]>([]);
@@ -617,9 +687,17 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
             badge={itinerary.length} open={openSections.itinerary} onToggle={() => toggle("itinerary")} />
           {openSections.itinerary && (
             <div className="p-5">
-              <p className="text-xs text-muted-foreground mb-4">
-                Days auto-populate from your duration setting above. Fill title, description, hotel and city per day.
-              </p>
+              <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                <p className="text-xs text-muted-foreground">
+                  Days auto-populate from your duration setting above. Fill title, description, hotel and city per day.
+                </p>
+                <button type="button" onClick={() => {
+                  setPresetModalType("itinerary");
+                  setPresetModalOpen(true);
+                }} className="flex items-center gap-2 text-xs font-semibold text-amber-700 border border-amber-200 bg-amber-50 rounded-lg px-3 py-1.5 hover:bg-amber-100 transition-colors">
+                  <Sparkles className="w-3.5 h-3.5" /> Import Itinerary from Presets
+                </button>
+              </div>
               <div className="space-y-4">
                 {itinerary.map((day, i) => (
                   <div key={i} className="border border-border rounded-xl p-4 bg-muted/30">
@@ -818,15 +896,23 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
             open={openSections.hotels} onToggle={() => toggle("hotels")} />
           {openSections.hotels && (
             <div className="p-5 space-y-4">
-              <button type="button" onClick={() => {
-                const h: HotelOption = {
-                  location: "", hotelName: "", nights: 1, roomType: "",
-                  amenities: [], price: 0, starRating: 3, description: "", images: [],
-                };
-                setValue("hotels", [...hotels, h], { shouldDirty: true, shouldTouch: true });
-              }} className="flex items-center gap-2 text-sm font-semibold text-green-700 border border-green-200 bg-green-50 rounded-lg px-4 py-2 hover:bg-green-100 transition-colors">
-                <Plus className="w-4 h-4" /> Add Hotel
-              </button>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button type="button" onClick={() => {
+                  const h: HotelOption = {
+                    location: "", hotelName: "", nights: 1, roomType: "",
+                    amenities: [], price: 0, starRating: 3, description: "", images: [],
+                  };
+                  setValue("hotels", [...hotels, h], { shouldDirty: true, shouldTouch: true });
+                }} className="flex items-center gap-2 text-sm font-semibold text-green-700 border border-green-200 bg-green-50 rounded-lg px-4 py-2 hover:bg-green-100 transition-colors">
+                  <Plus className="w-4 h-4" /> Add Hotel
+                </button>
+                <button type="button" onClick={() => {
+                  setPresetModalType("hotel");
+                  setPresetModalOpen(true);
+                }} className="flex items-center gap-2 text-sm font-semibold text-amber-700 border border-amber-200 bg-amber-50 rounded-lg px-4 py-2 hover:bg-amber-100 transition-colors">
+                  <Sparkles className="w-4 h-4" /> Import from Presets
+                </button>
+              </div>
 
               {hotels.map((ht, hi) => (
                 <div key={hi} className="border border-green-100 rounded-xl bg-green-50/30 p-4 space-y-3">
@@ -876,7 +962,7 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
                           setValue("hotels", upd, { shouldDirty: true, shouldTouch: true });
                         }}
                         className={selectClassName}>
-                        {[1,2,3,4,5].map((n) => <option key={n} value={n}>{"★".repeat(n)} {n} Star{n>1?"s":""}</option>)}
+                        {[1,2,3,4,5,6,7].map((n) => <option key={n} value={n}>{"★".repeat(n)} {n} Star{n>1?"s":""}</option>)}
                       </select>
                     </div>
                     <div className="col-span-2 sm:col-span-3">
@@ -934,12 +1020,20 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
             open={openSections.sightseeings} onToggle={() => toggle("sightseeings")} />
           {openSections.sightseeings && (
             <div className="p-5 space-y-4">
-              <button type="button" onClick={() => {
-                const s: SightseeingOption = { name: "", description: "", location: "", duration: "", images: [] };
-                setValue("sightseeings", [...sightseeings, s], { shouldDirty: true, shouldTouch: true });
-              }} className="flex items-center gap-2 text-sm font-semibold text-purple-700 border border-purple-200 bg-purple-50 rounded-lg px-4 py-2 hover:bg-purple-100 transition-colors">
-                <Plus className="w-4 h-4" /> Add Sightseeing
-              </button>
+              <div className="flex items-center gap-3 flex-wrap">
+                <button type="button" onClick={() => {
+                  const s: SightseeingOption = { name: "", description: "", location: "", duration: "", images: [] };
+                  setValue("sightseeings", [...sightseeings, s], { shouldDirty: true, shouldTouch: true });
+                }} className="flex items-center gap-2 text-sm font-semibold text-purple-700 border border-purple-200 bg-purple-50 rounded-lg px-4 py-2 hover:bg-purple-100 transition-colors">
+                  <Plus className="w-4 h-4" /> Add Sightseeing
+                </button>
+                <button type="button" onClick={() => {
+                  setPresetModalType("sightseeing");
+                  setPresetModalOpen(true);
+                }} className="flex items-center gap-2 text-sm font-semibold text-amber-700 border border-amber-200 bg-amber-50 rounded-lg px-4 py-2 hover:bg-amber-100 transition-colors">
+                  <Sparkles className="w-4 h-4" /> Import from Presets
+                </button>
+              </div>
 
               {sightseeings.map((sg, si) => (
                 <div key={si} className="border border-purple-100 rounded-xl bg-purple-50/30 p-4 space-y-3">
@@ -1071,6 +1165,15 @@ export default function PackageForm({ initialData, onSubmit }: PackageFormProps)
             Cancel
           </Button>
         </div>
+
+        {/* Preset Modal */}
+        <PresetModal
+          isOpen={presetModalOpen}
+          onClose={() => setPresetModalOpen(false)}
+          targetType={presetModalType}
+          defaultDestination={watch("location.destination") || watch("location.city") || ""}
+          onImport={handlePresetImport}
+        />
 
       </form>
     </Form>

@@ -17,6 +17,8 @@ import {
   X,
   FileCheck,
   Globe,
+  Sparkles,
+  Bookmark,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -38,6 +40,11 @@ const sidebarLinks = [
     name: "Packages",
     href: "/packages",
     icon: Package,
+  },
+  {
+    name: "Destination Presets",
+    href: "/presets",
+    icon: Bookmark,
   },
   {
     name: "Visa Requests",
